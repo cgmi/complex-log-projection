@@ -1,3 +1,10 @@
+import * as d3_base from "d3";
+import * as d3_geo_projection from "d3-geo-projection";
+
+// Merge base d3 and the geo-projection extension
+const d3 = Object.assign({}, d3_base, d3_geo_projection);
+
+
 async function drawWorld() {
     const response = await fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/land-50m.json");
     const world = await response.json();
@@ -8,7 +15,7 @@ async function drawWorld() {
 
     let projection = d3.geoMercator();
     
-    const canvas = document.getElementById("worldcanvas");
+    const canvas = document.getElementById("map");
     const context = canvas.getContext("2d")
 
     const width = canvas.width;

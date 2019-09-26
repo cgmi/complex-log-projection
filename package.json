@@ -1,0 +1,13 @@
+{
+  "name": "complex-log-projection",
+  "version": "0.1.0",
+  "description": "Complex logarithm geographic projection using d3",
+  "main": "index.js",
+  "repository": "git@github.com:cgmi/complex-log-projection.git",
+  "author": "Matthias Albrecht <matthias.albrecht@uni-konstanz.de>",
+  "license": "MIT",
+  "dependencies": {
+    "d3": "^5.12.0",
+    "d3-geo-projection": "^2.7.0"
+  }
+}

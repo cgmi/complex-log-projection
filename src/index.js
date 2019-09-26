@@ -16,8 +16,10 @@ let renderParams = {
 async function prepare() {
     // Download world map and set desired projection
     world = await loadTopojson("https://cdn.jsdelivr.net/npm/world-atlas@2/land-50m.json");
-    projection = d3.geoMercator();
+    //projection = d3.geoMercator();
+    projection = d3.geoAzimuthalEquidistant();
     
+
     // Main canvas to render the map onto
     canvas = d3.select("canvas#map").node();
     context = canvas.getContext("2d");
@@ -45,7 +47,7 @@ function render() {
     const path = d3.geoPath(projection, context);
     context.save();
     context.beginPath(), path(world.outline), context.clip(), context.fillStyle = "#fff", context.fillRect(0, 0, width, height);
-    
+
     if (renderParams.showGraticule) {
         context.beginPath(), path(world.graticule), context.strokeStyle = "#ccc", context.stroke();
     }    
@@ -64,6 +66,3 @@ async function start() {
 }
 
 start();
-
-
-

@@ -10,9 +10,6 @@
             "trace": true,
             "breakOnLoad": true,
             "sourceMaps": true,
-            "sourceMapPathOverrides": {
-                "*": "${webRoot}/src/*"
-            }
         },
     ]
 }

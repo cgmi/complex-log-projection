@@ -2,17 +2,17 @@
     "version": "0.1.0",
     "configurations": [
         {
-            "name": "Launch localhost",
+            "name": "Launch",
             "type": "chrome",
             "request": "launch",
-            "url": "http://localhost/mypage.html",
-            "webRoot": "${workspaceFolder}/wwwroot"
-        },
-        {
-            "name": "Launch index.html",
-            "type": "chrome",
-            "request": "launch",
-            "file": "${workspaceFolder}/index.html"
+            "url": "http://localhost:1234/",
+            "webRoot": "${workspaceFolder}/src",
+            "trace": true,
+            "breakOnLoad": true,
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "*": "${webRoot}/src/*"
+            }
         },
     ]
 }

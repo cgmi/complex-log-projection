@@ -1,5 +1,8 @@
-# Webpack bundle
-dist/
+# Bundle
+dist
+
+# Cache
+.cache
 
 # Logs
 logs

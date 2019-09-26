@@ -1,8 +1,14 @@
+// Fix regenerator-runtime issue with parcel...
+import 'regenerator-runtime/runtime'
+
+// d3
 import * as d3_base from "d3";
 import * as d3_geo_projection from "d3-geo-projection";
-
 // Merge base d3 and the geo-projection extension
 const d3 = Object.assign({}, d3_base, d3_geo_projection);
+
+// topojson
+import * as topojson from"topojson";
 
 
 async function drawWorld() {

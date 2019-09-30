@@ -1,6 +1,7 @@
 import 'regenerator-runtime/runtime'; // Fix regenerator-runtime issue with parcel...
 import * as d3 from "./vendor/d3-bundle";
-import { loadTopojson } from './modules/geo-loader';
+import { loadTopojson } from "./modules/geo-loader";
+import { complexLog } from "./modules/complexLog";
 
 let world, projection, canvas, context;
 
@@ -17,8 +18,8 @@ async function prepare() {
     // Download world map and set desired projection
     world = await loadTopojson("https://cdn.jsdelivr.net/npm/world-atlas@2/land-50m.json");
     //projection = d3.geoMercator();
-    projection = d3.geoAzimuthalEquidistant();
-    
+    //projection = d3.geoAzimuthalEquidistant();
+    projection = complexLog();
 
     // Main canvas to render the map onto
     canvas = d3.select("canvas#map").node();

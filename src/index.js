@@ -7,7 +7,8 @@ let world, projection, canvas, context;
 
 // Various render settings
 let renderParams = {
-    showGraticule: true
+    showGraticule: true,
+    scale: 100
 }
 
 /**
@@ -32,30 +33,52 @@ async function prepare() {
         renderParams.showGraticule = graticuleCheckbox.property("checked");
         render();
     });
+
+    // Scale range slider and label
+    const scaleRange = d3.select("input#scaleRange");
+    const scaleLabel = d3.select("label#scaleLabel");
+    scaleRange.node().value = renderParams.scale;
+    scaleLabel.node().innerHTML = renderParams.scale;
+    scaleRange.on("input", () => {
+        renderParams.scale = +scaleRange.node().value;
+        scaleLabel.node().innerHTML = renderParams.scale;
+        render();
+    });
+
 }
 
 /**
  * Render projected map to canvas
  */
 function render() {
+    // Calculate scale for projection to fit canvas
     const width = canvas.width;
-
     const [[x0, y0], [x1, y1]] = d3.geoPath(projection.fitWidth(width, world.outline)).bounds(world.outline);
     const dy = Math.ceil(y1 - y0), l = Math.min(Math.ceil(x1 - x0), dy);
-    projection.scale(projection.scale() * (l - 1) / l).precision(0.2);
-    let height = dy;
+    //projection.scale(projection.scale() * (l - 1) / l).precision(0.2);
+    projection.scale(renderParams.scale);
+    const height = dy;
 
+    // Set up geo path and start rendering
     const path = d3.geoPath(projection, context);
+    context.clearRect(0, 0, canvas.width, canvas.height);
     context.save();
+
+    // Background
     context.beginPath(), path(world.outline), context.clip(), context.fillStyle = "#fff", context.fillRect(0, 0, width, height);
 
+    // Graticule
     if (renderParams.showGraticule) {
         context.beginPath(), path(world.graticule), context.strokeStyle = "#ccc", context.stroke();
-    }    
-
-    context.beginPath(), path(world.land), context.fillStyle = "#000", context.fill();
+        context.restore();
+    }  
+    
+    // Landmass
+    context.beginPath(), path(world.land), context.fillStyle = "#000", context.stroke();
     context.restore();
-    context.beginPath(), path(world.outline), context.strokeStyle = "#000", context.stroke();
+
+    // Globe outline
+    //context.beginPath(), path(world.outline), context.strokeStyle = "#000", context.stroke();
 }
 
 /**

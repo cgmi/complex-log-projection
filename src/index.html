@@ -1,10 +1,12 @@
 <html>
     <body>
-        <canvas id="map" height="700" width="700"></canvas>
+        <canvas id="canvas_map"></canvas>
+        <!-- <svg id="svg_map"></svg> -->
         <div>
             <input type="checkbox" id="graticuleCheckbox"><label>Show graticule</label>
+            <input type="checkbox" id="outlineCheckbox"><label>Show outline</label>
             <br>
-            <input type="range" id="scaleRange" min="0" max="1000" step="1"><label id="scaleLabel">SCALE</label>
+            <label>Scale:</label><input type="range" id="scaleRange" min="0" max="1000" step="1"><label id="scaleLabel">SCALE</label>
         </div>
         <script src="index.js"></script>
     </body>

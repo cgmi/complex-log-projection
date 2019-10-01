@@ -3,12 +3,16 @@ import * as d3 from "./vendor/d3-bundle";
 import { loadTopojson } from "./modules/geo-loader";
 import { complexLog } from "./modules/complexLog";
 
-let world, projection, canvas, context;
+let world, projection, canvas, context, svg;
 
 // Various render settings
 let renderParams = {
+    useSvg: false,
     showGraticule: true,
-    scale: 100
+    showOutline: true,
+    scale: 100,
+    width: 900,
+    height: 900,
 }
 
 /**
@@ -23,15 +27,28 @@ async function prepare() {
     projection = complexLog();
 
     // Main canvas to render the map onto
-    canvas = d3.select("canvas#map").node();
-    context = canvas.getContext("2d");
+    if (renderParams.useSvg) {
+        // SVG
+        svg = d3.select("svg#svg_map").attr("width", renderParams.width).attr("height", renderParams.height);
+    } else {
+        canvas = d3.select("canvas#canvas_map").attr("width", renderParams.width).attr("height", renderParams.height).node();
+        context = canvas.getContext("2d");
+    }
 
     // Graticule checkbox, triggers re-render
     const graticuleCheckbox = d3.select("input#graticuleCheckbox");
     graticuleCheckbox.property("checked", renderParams.showGraticule);
     graticuleCheckbox.on("change", () => {
         renderParams.showGraticule = graticuleCheckbox.property("checked");
-        render();
+        update();
+    });
+
+    // Outline checkbox, triggers re-render
+    const outlineCheckbox = d3.select("input#outlineCheckbox");
+    outlineCheckbox.property("checked", renderParams.showOutline);
+    outlineCheckbox.on("change", () => {
+        renderParams.showOutline = outlineCheckbox.property("checked");
+        update();
     });
 
     // Scale range slider and label
@@ -42,15 +59,22 @@ async function prepare() {
     scaleRange.on("input", () => {
         renderParams.scale = +scaleRange.node().value;
         scaleLabel.node().innerHTML = renderParams.scale;
-        render();
+        update();
     });
 
+}
+
+/** Render projected map to SVG */
+function renderSvg() {
+    projection.scale(renderParams.scale);
+    const path = d3.geoPath(projection);
+    svg.append("g").selectAll("path").data(world.land).enter().append("path").attr("d", path);
 }
 
 /**
  * Render projected map to canvas
  */
-function render() {
+function renderCanvas() {
     // Calculate scale for projection to fit canvas
     const width = canvas.width;
     const [[x0, y0], [x1, y1]] = d3.geoPath(projection.fitWidth(width, world.outline)).bounds(world.outline);
@@ -78,7 +102,20 @@ function render() {
     context.restore();
 
     // Globe outline
-    //context.beginPath(), path(world.outline), context.strokeStyle = "#000", context.stroke();
+    if (renderParams.showOutline) {
+        context.beginPath(), path(world.outline), context.strokeStyle = "#000", context.stroke();
+    }
+}
+
+/**
+ * Trigger re-rendering
+ */
+function update() {
+    if (renderParams.useSvg) {
+        renderSvg();
+    } else {
+        renderCanvas();
+    }
 }
 
 /**
@@ -86,7 +123,7 @@ function render() {
  */
 async function start() {
     await prepare();
-    render();
+    update();
 }
 
 start();

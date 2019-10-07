@@ -3,11 +3,11 @@ import * as d3 from "./vendor/d3-bundle";
 import { loadTopojson } from "./modules/geo-loader";
 import { complexLog } from "./modules/complexLog";
 
-let world, projection, canvas, context, svg;
+let world, projection, canvas, context, svg, svg_g, display;
 
 // Various render settings
 let renderParams = {
-    useSvg: false,
+    useSvg: true,
     showGraticule: true,
     showOutline: true,
     scale: 100,
@@ -26,14 +26,24 @@ async function prepare() {
     //projection = d3.geoAzimuthalEquidistant();
     projection = complexLog();
 
-    // Main canvas to render the map onto
+    // Main display to render the map onto
     if (renderParams.useSvg) {
         // SVG
-        svg = d3.select("svg#svg_map").attr("width", renderParams.width).attr("height", renderParams.height);
+        svg = d3.select("div#display").append("svg").attr("width", renderParams.width).attr("height", renderParams.height);
+        svg_g = svg.append("g").selectAll("path").data(world.land.features).enter().append("path")
+        svg_g.attr("fill", "none").attr("stroke", "black");
+        display = svg;
     } else {
-        canvas = d3.select("canvas#canvas_map").attr("width", renderParams.width).attr("height", renderParams.height).node();
-        context = canvas.getContext("2d");
+        // Canvas
+        canvas = d3.select("div#display").append("canvas").attr("width", renderParams.width).attr("height", renderParams.height);
+        context = canvas.node().getContext("2d");
+        display = canvas;
     }
+
+    // Mouse coordinates
+    display.on("mousedown", function() {
+        console.log(projection.invert(d3.mouse(this)));
+    });
 
     // Graticule checkbox, triggers re-render
     const graticuleCheckbox = d3.select("input#graticuleCheckbox");
@@ -66,9 +76,10 @@ async function prepare() {
 
 /** Render projected map to SVG */
 function renderSvg() {
+    //FIXME: svg not properly aligned
     projection.scale(renderParams.scale);
-    const path = d3.geoPath(projection);
-    svg.append("g").selectAll("path").data(world.land).enter().append("path").attr("d", path);
+    let path = d3.geoPath(projection);
+    svg_g.attr("d", path);
 }
 
 /**
@@ -76,7 +87,7 @@ function renderSvg() {
  */
 function renderCanvas() {
     // Calculate scale for projection to fit canvas
-    const width = canvas.width;
+    const width = canvas.node().width;
     const [[x0, y0], [x1, y1]] = d3.geoPath(projection.fitWidth(width, world.outline)).bounds(world.outline);
     const dy = Math.ceil(y1 - y0), l = Math.min(Math.ceil(x1 - x0), dy);
     //projection.scale(projection.scale() * (l - 1) / l).precision(0.2);
@@ -85,7 +96,7 @@ function renderCanvas() {
 
     // Set up geo path and start rendering
     const path = d3.geoPath(projection, context);
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.clearRect(0, 0, canvas.node().width, canvas.node().height);
     context.save();
 
     // Background

@@ -15,6 +15,7 @@ export function complexLogRaw(lambda, phi) {
     let logIm = im;
 
     // Apply complex logarithm 
+    // FIXME: Projection yields NaN/Infinity
     //logRe = math.log(math.sqrt(re ** 2 + im ** 2));
     //logIm = math.atan2(im, re);
 
@@ -30,6 +31,7 @@ complexLogRaw.invert = function(x, y) {
     let invLogIm = y;
 
     // Inverse complex logarithm (complex exponential function)
+    // FIXME: Not working to broken forward projection (see above)
     //invLogRe = math.exp(x) * math.cos(y);
     //invLogIm = math.exp(x) * math.sin(y);
     

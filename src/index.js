@@ -1,8 +1,10 @@
+// TODO: Integrate d3-bundle as module into package manager
 import 'regenerator-runtime/runtime'; // Fix regenerator-runtime issue with parcel...
 import * as d3 from "./vendor/d3-bundle";
 import { loadTopojson } from "./modules/geo-loader";
 import { complexLog } from "./modules/complexLog";
 
+// TODO: Rename and refactor to avoid globals
 let world, projection, canvas, context, svg, svg_g, display;
 
 // Various render settings
@@ -22,8 +24,6 @@ let renderParams = {
 async function prepare() {
     // Download world map and set desired projection
     world = await loadTopojson("https://cdn.jsdelivr.net/npm/world-atlas@2/land-50m.json");
-    //projection = d3.geoMercator();
-    //projection = d3.geoAzimuthalEquidistant();
     projection = complexLog();
 
     // Main display to render the map onto
@@ -74,12 +74,16 @@ async function prepare() {
 
 }
 
+// TODO: Put rendering into separate module
+
 /** Render projected map to SVG */
 function renderSvg() {
     //FIXME: svg not properly aligned
     projection.scale(renderParams.scale);
     let path = d3.geoPath(projection);
     svg_g.attr("d", path);
+
+    // TODO: SVG outline and graticule
 }
 
 /**

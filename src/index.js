@@ -5,7 +5,7 @@ import { loadTopojson } from "./modules/geo-loader";
 import { complexLog } from "./modules/complexLog";
 
 // TODO: Rename and refactor to avoid globals
-let world, projection, canvas, context, svg, svg_g, display;
+let world, projection, canvas, context, svg, svg_land, svg_graticule, svg_outline, display;
 
 // Various render settings
 let renderParams = {
@@ -30,8 +30,19 @@ async function prepare() {
     if (renderParams.useSvg) {
         // SVG
         svg = d3.select("div#display").append("svg").attr("width", renderParams.width).attr("height", renderParams.height);
-        svg_g = svg.append("g").selectAll("path").data(world.land.features).enter().append("path")
-        svg_g.attr("fill", "none").attr("stroke", "black");
+
+        // SVG landmass
+        svg_land = svg.append("g").selectAll("path").data(world.land.features).enter().append("path");
+        svg_land.attr("fill", "none").attr("stroke", "black");
+
+        // SVG graticule
+        svg_graticule = svg.append("g").append("path").datum(world.graticule);
+        svg_graticule.attr("fill", "none").attr("stroke", "#ccc");
+
+        // SVG outline
+        svg_outline = svg.append("g").append("path").datum(world.outline);
+        svg_outline.attr("fill", "none").attr("stroke", "black");
+
         display = svg;
     } else {
         // Canvas
@@ -78,12 +89,16 @@ async function prepare() {
 
 /** Render projected map to SVG */
 function renderSvg() {
+    // Sync SVG settings
+    svg_graticule.attr("visibility", renderParams.showGraticule ? "visible" : "hidden");
+    svg_outline.attr("visibility", renderParams.showOutline ? "visible" : "hidden");
+
     //FIXME: svg not properly aligned
     projection.scale(renderParams.scale);
     let path = d3.geoPath(projection);
-    svg_g.attr("d", path);
-
-    // TODO: SVG outline and graticule
+    svg_land.attr("d", path);
+    svg_graticule.attr("d", path);
+    svg_outline.attr("d", path);
 }
 
 /**

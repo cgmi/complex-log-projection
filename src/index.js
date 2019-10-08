@@ -5,7 +5,7 @@ import { loadTopojson } from "./modules/geo-loader";
 import { complexLog } from "./modules/complexLog";
 
 // TODO: Rename and refactor to avoid globals
-let world, projection, canvas, context, svg, svg_land, svg_graticule, svg_outline, display;
+let world, projection, canvas, context, svg, svg_background, svg_land, svg_graticule, svg_outline, display;
 
 // Various render settings
 let renderParams = {
@@ -15,6 +15,15 @@ let renderParams = {
     scaleFactor: 0.9,
     width: 900,
     height: 900,
+}
+
+let style = {
+    backgroundFill: "none",
+    backgroundStroke: "black",
+    landFill: "none",
+    landStroke: "black",
+    graticuleStroke: "#ccc",
+    outlineStroke: "black"
 }
 
 
@@ -31,19 +40,21 @@ async function prepare() {
     if (renderParams.useSvg) {
         // SVG
         svg = d3.select("div#display").append("svg").attr("width", renderParams.width).attr("height", renderParams.height);
-        //svg.style("display", "block");
+
+        // SVG background
+        svg_background = svg.append("g").append("rect").attr("fill", style.backgroundFill).attr("stroke", style.backgroundStroke);
 
         // SVG landmass
         svg_land = svg.append("g").selectAll("path").data(world.land.features).enter().append("path");
-        svg_land.attr("fill", "none").attr("stroke", "black");
+        svg_land.attr("fill", style.landFill).attr("stroke", style.landStroke);
 
         // SVG graticule
         svg_graticule = svg.append("g").append("path").datum(world.graticule);
-        svg_graticule.attr("fill", "none").attr("stroke", "#ccc");
+        svg_graticule.attr("fill", "none").attr("stroke", style.graticuleStroke);
 
         // SVG outline
         svg_outline = svg.append("g").append("path").datum(world.outline);
-        svg_outline.attr("fill", "none").attr("stroke", "black");
+        svg_outline.attr("fill", "none").attr("stroke", style.outlineStroke);
 
         display = svg;
     } else {
@@ -108,6 +119,7 @@ function renderSvg() {
 
     // Render SVG
     let path = d3.geoPath(projection);
+    svg_background.attr("width", width).attr("height", height);
     svg_land.attr("d", path);
     svg_graticule.attr("d", path);
     svg_outline.attr("d", path);
@@ -134,21 +146,33 @@ function renderCanvas() {
     context.save();
 
     // Background
-    context.beginPath(), path(world.outline), context.clip(), context.fillStyle = "#fff", context.fillRect(0, 0, width, height);
+    context.beginPath(), path(world.outline), context.fillStyle = style.backgroundFill, context.strokeStyle = style.backgroundStroke;
+    if (style.backgroundFill != "none") {
+        context.fillRect(0, 0, width, height);
+    }
+    if (style.backgroundStroke != "none") {
+        context.strokeRect(0, 0, width, height);
+    }
 
     // Graticule
     if (renderParams.showGraticule) {
-        context.beginPath(), path(world.graticule), context.strokeStyle = "#ccc", context.stroke();
+        context.beginPath(), path(world.graticule), context.strokeStyle = style.graticuleStroke, context.stroke();
         context.restore();
     }  
     
     // Landmass
-    context.beginPath(), path(world.land), context.fillStyle = "#000", context.stroke();
+    context.beginPath(), path(world.land), context.fillStyle = style.landFill, context.strokeStyle = style.landStroke;
+    if (style.landFill != "none") {
+        context.fill()
+    }
+    if (style.landStroke != "none") {
+        context.stroke();
+    }
     context.restore();
 
     // Globe outline
     if (renderParams.showOutline) {
-        context.beginPath(), path(world.outline), context.strokeStyle = "#000", context.stroke();
+        context.beginPath(), path(world.outline), context.strokeStyle = style.outlineStroke, context.stroke();
     }
 }
 

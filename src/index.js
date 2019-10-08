@@ -9,13 +9,14 @@ let world, projection, canvas, context, svg, svg_land, svg_graticule, svg_outlin
 
 // Various render settings
 let renderParams = {
-    useSvg: true,
+    useSvg: false,
     showGraticule: true,
     showOutline: true,
-    scale: 100,
+    scaleFactor: 0.9,
     width: 900,
     height: 900,
 }
+
 
 /**
  * Prepare site for map rendering
@@ -30,6 +31,7 @@ async function prepare() {
     if (renderParams.useSvg) {
         // SVG
         svg = d3.select("div#display").append("svg").attr("width", renderParams.width).attr("height", renderParams.height);
+        svg.style("display", "block");
 
         // SVG landmass
         svg_land = svg.append("g").selectAll("path").data(world.land.features).enter().append("path");
@@ -75,31 +77,42 @@ async function prepare() {
     // Scale range slider and label
     const scaleRange = d3.select("input#scaleRange");
     const scaleLabel = d3.select("label#scaleLabel");
-    scaleRange.node().value = renderParams.scale;
-    scaleLabel.node().innerHTML = renderParams.scale;
+    scaleRange.node().value = renderParams.scaleFactor;
+    scaleLabel.node().innerHTML = renderParams.scaleFactor;
     scaleRange.on("input", () => {
-        renderParams.scale = +scaleRange.node().value;
-        scaleLabel.node().innerHTML = renderParams.scale;
+        renderParams.scaleFactor = +scaleRange.node().value;
+        scaleLabel.node().innerHTML = renderParams.scaleFactor;
         update();
     });
 
 }
 
+
 // TODO: Put rendering into separate module
 
 /** Render projected map to SVG */
 function renderSvg() {
+    // Calculate scale for projection to fit SVG
+    const width =  svg.node().width;
+    const [[x0, y0], [x1, y1]] = d3.geoPath(projection.fitWidth(width, world.outline)).bounds(world.outline);
+    const dy = Math.ceil(y1 - y0), l = Math.min(Math.ceil(x1 - x0), dy);
+    projection.scale(renderParams.scaleFactor * projection.scale() * (l - 1) / l).precision(0.2);
+    const height = dy;
+
     // Sync SVG settings
     svg_graticule.attr("visibility", renderParams.showGraticule ? "visible" : "hidden");
     svg_outline.attr("visibility", renderParams.showOutline ? "visible" : "hidden");
 
-    //FIXME: svg not properly aligned
-    projection.scale(renderParams.scale);
+    // Prepare SVG
+    svg.attr("height", height);
+
+    // Render SVG
     let path = d3.geoPath(projection);
     svg_land.attr("d", path);
     svg_graticule.attr("d", path);
     svg_outline.attr("d", path);
 }
+
 
 /**
  * Render projected map to canvas
@@ -109,9 +122,11 @@ function renderCanvas() {
     const width = canvas.node().width;
     const [[x0, y0], [x1, y1]] = d3.geoPath(projection.fitWidth(width, world.outline)).bounds(world.outline);
     const dy = Math.ceil(y1 - y0), l = Math.min(Math.ceil(x1 - x0), dy);
-    //projection.scale(projection.scale() * (l - 1) / l).precision(0.2);
-    projection.scale(renderParams.scale);
+    projection.scale(renderParams.scaleFactor * projection.scale() * (l - 1) / l).precision(0.2);
     const height = dy;
+
+    // Prepare canvas
+    canvas.attr("height", height);
 
     // Set up geo path and start rendering
     const path = d3.geoPath(projection, context);
@@ -137,6 +152,7 @@ function renderCanvas() {
     }
 }
 
+
 /**
  * Trigger re-rendering
  */
@@ -147,6 +163,7 @@ function update() {
         renderCanvas();
     }
 }
+
 
 /**
  * Prepares map and renders one time

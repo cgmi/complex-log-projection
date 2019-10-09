@@ -1,8 +1,8 @@
 // TODO: Integrate d3-bundle as module into package manager
-import 'regenerator-runtime/runtime'; // Fix regenerator-runtime issue with parcel...
+import "regenerator-runtime/runtime"; // Fix regenerator-runtime issue with parcel...
 import * as d3 from "./vendor/d3-bundle";
 import { loadTopojson } from "./modules/geo-loader";
-import { complexLog } from "./modules/complexLog";
+import { complexLog, complexLogEnabled } from "./modules/complexLog";
 
 // TODO: Rename and refactor to avoid globals
 let world, projection, canvas, context, svg, svg_background, svg_land, svg_graticule, svg_outline, display;
@@ -20,7 +20,7 @@ let renderParams = {
 let style = {
     backgroundFill: "none",
     backgroundStroke: "black",
-    landFill: "none",
+    landFill: "red",
     landStroke: "black",
     graticuleStroke: "#ccc",
     outlineStroke: "black"
@@ -82,6 +82,14 @@ async function prepare() {
     outlineCheckbox.property("checked", renderParams.showOutline);
     outlineCheckbox.on("change", () => {
         renderParams.showOutline = outlineCheckbox.property("checked");
+        update();
+    });
+
+    // Complex logarithm toggle checkbox, trigger re-render
+    const complexLogCheckbox = d3.select("input#complexLogCheckbox");
+    complexLogCheckbox.property("checked", complexLogEnabled());
+    complexLogCheckbox.on("change", () => {
+        complexLogEnabled(complexLogCheckbox.property("checked"));
         update();
     });
 

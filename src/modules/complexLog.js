@@ -2,19 +2,7 @@ import * as d3 from "../vendor/d3-bundle";
 import * as math from "mathjs";
 
 const cartesianOffset = 0.01;
-let doComplexLog = false;
 
-
-/**
- * Enable or disable complex logarithm mapping after azimuthal projection
- * @param {Boolean} _ State
- */
-export function complexLogEnabled(_) {
-    if (!arguments.length) {
-        return doComplexLog;
-    }
-    return doComplexLog = _;
-}
 
 /**
  * Complex logarithm raw projection
@@ -23,8 +11,7 @@ export function complexLogEnabled(_) {
  * @param {Number} phi Latitude
  */
 export function complexLogRaw(lambda, phi) {
-    let re, im;
-    [re, im] = d3.geoAzimuthalEquidistantRaw(lambda, phi);
+    let [re, im] = d3.geoAzimuthalEquidistantRaw(lambda, phi);
 
     // Small cartesian offset to prevent logarithm of 0
     re += cartesianOffset;
@@ -34,11 +21,10 @@ export function complexLogRaw(lambda, phi) {
     let logIm = im;
 
     // Apply complex logarithm 
-    // FIXME: Projection not working properly
-    if (doComplexLog) {
-        logRe = math.log(math.sqrt(re ** 2 + im ** 2));
-        logIm = math.atan2(im, re); 
-    }
+    logRe = math.log(math.sqrt(re ** 2 + im ** 2));
+    logIm = math.atan2(im, re); 
+    // Swap axis
+    [logRe, logIm] = [logIm, logRe]
 
     return [logRe, logIm];
 }
@@ -53,11 +39,8 @@ complexLogRaw.invert = function(x, y) {
     let invLogIm = y;
 
     // Inverse complex logarithm (complex exponential function)
-    // FIXME: Values questionable due to broken forward projection (see above)
-    if (doComplexLog) {
-        invLogRe = math.exp(x) * math.cos(y);
-        invLogIm = math.exp(x) * math.sin(y);
-    }
+    invLogRe = math.exp(x) * math.cos(y);
+    invLogIm = math.exp(x) * math.sin(y);
 
     // Undo offset from forward projection
     invLogRe -= cartesianOffset;
@@ -71,5 +54,5 @@ complexLogRaw.invert = function(x, y) {
  * Complex logarithm projection
  */
 export function complexLog() {
-    return d3.geoProjection(complexLogRaw); //.clipAngle(180 - 1e-3);
+    return d3.geoProjection(complexLogRaw);
 }

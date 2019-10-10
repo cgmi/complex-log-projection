@@ -9,8 +9,9 @@ export async function loadTopojson(url) {
     const world = await d3.json(url);
 
     let land = topojson.feature(world, world.objects.land);
+    let countries = topojson.feature(world, world.objects.countries);
     let graticule = d3.geoGraticule10();
     let outline = ({type: "Sphere"});
 
-    return { land, graticule, outline };
+    return { land, countries, graticule, outline };
 }

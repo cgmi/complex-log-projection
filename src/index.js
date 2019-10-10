@@ -4,8 +4,8 @@ import * as d3 from "./vendor/d3-bundle";
 import { loadTopojson } from "./modules/geo-loader";
 import { complexLog, complexLogEnabled } from "./modules/complexLog";
 
-// TODO: Rename and refactor to avoid globals
-let world, projection, canvas, context, svg, svg_background, svg_land, svg_graticule, svg_outline, display;
+// TODO: Rename and refactor the following lines
+let world, projection, canvas, context, svg, svg_background, svg_countries, svg_graticule, svg_outline, display;
 
 // Various render settings
 let renderParams = {
@@ -13,17 +13,55 @@ let renderParams = {
     showGraticule: true,
     showOutline: true,
     scaleFactor: 0.9,
-    width: 900,
-    height: 900,
+    width: 1500,
+    height: 1500,
 }
 
 let style = {
     backgroundFill: "none",
     backgroundStroke: "black",
-    landFill: "red",
-    landStroke: "black",
+    countriesFill: "none",
+    countriesStroke: "black",
     graticuleStroke: "#ccc",
     outlineStroke: "black"
+}
+
+let baseScale;
+
+let projections = {
+    complexLog: complexLog(),
+    azimuthal: d3.geoAzimuthalEquidistant()
+}
+
+let translateStep = 10;
+
+let colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+
+
+/**
+ * Changes current projection and re-fits display area
+ * @param {d3.GeoProjection} newProjection 
+ */
+function changeProjection(newProjection) {
+    projection = newProjection;
+    let fittingObject = newProjection == projections.complexLog ? world.countries : world.outline;
+    projection.fitSize([renderParams.width, renderParams.height], fittingObject);
+
+    baseScale = projection.scale()
+    projection.scale(renderParams.scaleFactor * baseScale);
+    projection.precision(0.2);
+}
+
+
+/**
+ * Translate projected map by vector (x, y)
+ * @param {Number} x 
+ * @param {Number} y 
+ */
+function translateMap(x, y) {
+    let t = projection.translate();
+    projection.translate([t[0] + x, t[1] + y]);
+    update();
 }
 
 
@@ -33,8 +71,10 @@ let style = {
  */
 async function prepare() {
     // Download world map and set desired projection
-    world = await loadTopojson("https://cdn.jsdelivr.net/npm/world-atlas@2/land-50m.json");
-    projection = complexLog();
+    //world = await loadTopojson("https://cdn.jsdelivr.net/npm/world-atlas@2/land-50m.json");
+    world = await loadTopojson("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json");
+
+    changeProjection(projections.azimuthal); 
 
     // Main display to render the map onto
     if (renderParams.useSvg) {
@@ -44,9 +84,9 @@ async function prepare() {
         // SVG background
         svg_background = svg.append("g").append("rect").attr("fill", style.backgroundFill).attr("stroke", style.backgroundStroke);
 
-        // SVG landmass
-        svg_land = svg.append("g").selectAll("path").data(world.land.features).enter().append("path");
-        svg_land.attr("fill", style.landFill).attr("stroke", style.landStroke);
+        // SVG countries
+        svg_countries = svg.append("g").selectAll("path").data(world.countries.features).enter().append("path");
+        svg_countries.attr("fill", style.countriesFill).attr("stroke", style.countriesStroke);
 
         // SVG graticule
         svg_graticule = svg.append("g").append("path").datum(world.graticule);
@@ -69,6 +109,26 @@ async function prepare() {
         console.log(projection.invert(d3.mouse(this)));
     });
 
+    // Keyboard interaction
+    display.attr("focusable", false);
+    display.on("keydown", function() {
+        switch(d3.event.code) {
+            case "KeyW":
+                translateMap(0, -translateStep);
+                break;
+            case "KeyS":
+                translateMap(0, translateStep);
+                break;
+            case "KeyA":
+                translateMap(-translateStep, 0);
+                break;
+            case "KeyD":
+                translateMap(translateStep, 0);
+                break;
+        }
+    });
+    display.on("focus", function() {});
+
     // Graticule checkbox, triggers re-render
     const graticuleCheckbox = d3.select("input#graticuleCheckbox");
     graticuleCheckbox.property("checked", renderParams.showGraticule);
@@ -87,9 +147,13 @@ async function prepare() {
 
     // Complex logarithm toggle checkbox, trigger re-render
     const complexLogCheckbox = d3.select("input#complexLogCheckbox");
-    complexLogCheckbox.property("checked", complexLogEnabled());
     complexLogCheckbox.on("change", () => {
-        complexLogEnabled(complexLogCheckbox.property("checked"));
+        if (!complexLogCheckbox.property("checked")) {
+            changeProjection(projections.azimuthal)
+        } else {
+            changeProjection(projections.complexLog);
+        }
+
         update();
     });
 
@@ -101,6 +165,8 @@ async function prepare() {
     scaleRange.on("input", () => {
         renderParams.scaleFactor = +scaleRange.node().value;
         scaleLabel.node().innerHTML = renderParams.scaleFactor;
+        projection.scale(renderParams.scaleFactor * baseScale)
+
         update();
     });
 
@@ -111,24 +177,17 @@ async function prepare() {
 
 /** Render projected map to SVG */
 function renderSvg() {
-    // Calculate scale for projection to fit SVG
     const width =  svg.attr("width");
-    const [[x0, y0], [x1, y1]] = d3.geoPath(projection.fitWidth(width, world.outline)).bounds(world.outline);
-    const dy = Math.ceil(y1 - y0), l = Math.min(Math.ceil(x1 - x0), dy);
-    projection.scale(renderParams.scaleFactor * projection.scale() * (l - 1) / l).precision(0.2);
-    const height = dy;
+    const height = svg.attr("height");
 
     // Sync SVG settings
     svg_graticule.attr("visibility", renderParams.showGraticule ? "visible" : "hidden");
     svg_outline.attr("visibility", renderParams.showOutline ? "visible" : "hidden");
 
-    // Prepare SVG
-    svg.attr("height", height);
-
     // Render SVG
     let path = d3.geoPath(projection);
     svg_background.attr("width", width).attr("height", height);
-    svg_land.attr("d", path);
+    svg_countries.attr("d", path).style("fill", function(d) {return colorScale( d.id); });
     svg_graticule.attr("d", path);
     svg_outline.attr("d", path);
 }
@@ -168,12 +227,12 @@ function renderCanvas() {
         context.restore();
     }  
     
-    // Landmass
-    context.beginPath(), path(world.land), context.fillStyle = style.landFill, context.strokeStyle = style.landStroke;
-    if (style.landFill != "none") {
+    // Countries
+    context.beginPath(), path(world.countries), context.fillStyle = style.countriesFill, context.strokeStyle = style.countriesStroke;
+    if (style.countriesFill != "none") {
         context.fill()
     }
-    if (style.landStroke != "none") {
+    if (style.countriesStroke != "none") {
         context.stroke();
     }
     context.restore();

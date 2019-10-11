@@ -28,9 +28,20 @@ The idea is based on the following papers:
    yarn build
    ```
 
-   You can use `--public-url <path>` to specify the public URL to serve on. See [Parcel CLI](https://parceljs.org/cli.html) for more information. Use `yarn build --build-url ./` to build a production bundle that can be used locally without a webserver.
+   You can use `--public-url <path>` to specify the public URL to serve on. See [Parcel CLI](https://parceljs.org/cli.html) for more information and the yarn scripts below. Use `yarn build-local` to build a production bundle that can be used locally without a webserver.
 
 4. Navigate your browser to [localhost:1234](http://localhost:1234)
+
+## yarn scripts
+
+Usage: `yarn run <script>` or `yarn <script>`
+
+| Script            | Description                                                                              |
+|-------------------|------------------------------------------------------------------------------------------|
+| dev               | Starts development server                                                                |
+| build             | Builds for production, public URL: `/`                                                   |
+| build-local       | Builds for production, runs locally without a webserver, public URL: `./`                |
+| build-github      | Builds for production, deployment as GitHub page, public URL: `/complex-log-projection/` |
 
 ## Visual Studio Code specifics
 

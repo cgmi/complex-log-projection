@@ -2,7 +2,7 @@
 import "regenerator-runtime/runtime"; // Fix regenerator-runtime issue with parcel...
 import * as d3 from "./vendor/d3-bundle";
 import { loadTopojson } from "./modules/geo-loader";
-import { complexLog, complexLogEnabled } from "./modules/complexLog";
+import { complexLog } from "./modules/complexLog";
 
 // TODO: Rename and refactor the following lines
 let world, projection, canvas, context, svg, svg_background, svg_countries, svg_graticule, svg_outline, display;

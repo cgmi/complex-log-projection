@@ -1,3 +1,5 @@
+[**Click here for a live preview**](https://cgmi.github.io/complex-log-projection/)
+
 # Complex Log Projection
 
 This repo implements a complex log view for geo polygons.

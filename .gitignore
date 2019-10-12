@@ -1,3 +1,7 @@
+# Builds, except for GitHub Pages
+build/*
+!build/github
+
 # Cache
 .cache
 

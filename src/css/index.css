@@ -1,0 +1,12 @@
+.topbar {
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+    height: 75px;
+    background-color: white
+}
+
+.main {
+    margin-top: 75px;
+}

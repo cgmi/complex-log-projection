@@ -2,7 +2,7 @@
     "version": "0.1.0",
     "configurations": [
         {
-            "name": "Launch",
+            "name": "Launch Chrome",
             "type": "chrome",
             "request": "launch",
             "url": "http://localhost:1234/",
@@ -11,5 +11,13 @@
             "breakOnLoad": true,
             "sourceMaps": true,
         },
+        {
+            "name": "Launch Firefox DE",
+            "type": "firefox",
+            "request": "launch",
+            "reAttach": true,
+            "url": "http://localhost:1234/",
+            "webRoot": "${workspaceFolder}"
+        }
     ]
 }

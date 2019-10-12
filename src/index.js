@@ -157,18 +157,25 @@ async function prepare() {
         update();
     });
 
-    // Scale range slider and label
+    // Scale range slider and number
     const scaleRange = d3.select("input#scaleRange");
-    const scaleLabel = d3.select("label#scaleLabel");
-    scaleRange.node().value = renderParams.scaleFactor;
-    scaleLabel.node().innerHTML = renderParams.scaleFactor;
+    const scaleNumber = d3.select("input#scaleNumber");
+    scaleRange.property("value", renderParams.scaleFactor);
+    scaleNumber.property("value", renderParams.scaleFactor);
     scaleRange.on("input", () => {
-        renderParams.scaleFactor = +scaleRange.node().value;
-        scaleLabel.node().innerHTML = renderParams.scaleFactor;
+        renderParams.scaleFactor = +scaleRange.property("value");
+        scaleNumber.property("value", renderParams.scaleFactor);
         projection.scale(renderParams.scaleFactor * baseScale)
 
         update();
     });
+    scaleNumber.on("input", () => {
+        renderParams.scaleFactor = +scaleNumber.property("value");
+        scaleRange.property("value", renderParams.scaleFactor);
+        projection.scale(renderParams.scaleFactor * baseScale)
+
+        update();
+    })
 
 }
 

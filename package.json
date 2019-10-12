@@ -7,7 +7,7 @@
   "author": "Matthias Albrecht <matthias.albrecht@uni-konstanz.de>",
   "license": "MIT",
   "scripts": {
-    "dev": "parcel src/index.html",
+    "dev": "parcel src/index.html --out-dir build/dev",
     "build": "parcel build src/index.html --out-dir build/default",
     "build-local": "parcel build src/index.html --public-url ./ --out-dir build/local",
     "build-github": "parcel build src/index.html --public-url /complex-log-projection/ --out-dir build/github"

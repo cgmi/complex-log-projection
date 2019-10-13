@@ -8,9 +8,9 @@
   "license": "MIT",
   "scripts": {
     "dev": "parcel src/index.html --out-dir build/dev",
-    "build": "parcel build src/index.html --out-dir build/default",
-    "build-local": "parcel build src/index.html --public-url ./ --out-dir build/local",
-    "build-github": "parcel build src/index.html --public-url /complex-log-projection/ --out-dir build/github"
+    "build": "parcel build src/index.html --out-dir build/default --no-content-hash",
+    "build-local": "parcel build src/index.html --public-url ./ --out-dir build/local --no-content-hash",
+    "build-github": "parcel build src/index.html --public-url /complex-log-projection/ --out-dir build/github --no-content-hash"
   },
   "dependencies": {
     "d3": "^5.12.0",

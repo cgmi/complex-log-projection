@@ -4,7 +4,11 @@
     top: 0;
     left: 0;
     height: 75px;
-    background-color: white
+    background-color: white;
+}
+
+.topbar-inner {
+    margin: 5px;
 }
 
 .main {

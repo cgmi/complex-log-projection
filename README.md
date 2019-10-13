@@ -38,13 +38,13 @@ The idea is based on the following papers:
 
 Usage: `yarn run <script>` or `yarn <script>`
 
-| Script              | Description                                                                                   |
-|---------------------|-----------------------------------------------------------------------------------------------|
-| `dev`               | Starts development server                                                                     |
-| `build`             | Builds for production, public URL: `/`                                                        |
-| `build-local`       | Builds for production, runs locally without a webserver, public URL: `./`                     |
-| `build-github`      | Builds for production and deployment as a GitHub page, public URL: `/complex-log-projection/` |
-| `deploy`            | Deploys the current build from `build/github` to the live GitHub page                         |
+| Script              | Description                                                                                                             |
+|---------------------|-------------------------------------------------------------------------------------------------------------------------|
+| `dev`               | Starts development server                                                                                               |
+| `build`             | Builds for production, public URL: `/`                                                                                  |
+| `build-local`       | Builds for production, runs locally without a webserver, public URL: `./`                                               |
+| `build-github`      | Builds for production and deployment as a GitHub page, public URL: `/complex-log-projection/`                           |
+| `deploy`            | Deploys the current build from `build/github` to the [live GitHub page](https://cgmi.github.io/complex-log-projection/) |
 
 ## Visual Studio Code specifics
 

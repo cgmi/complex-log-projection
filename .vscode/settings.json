@@ -1,5 +1,7 @@
 {
     "cSpell.words": [
         "topojson"
-    ]
+    ],
+    "telemetry.enableTelemetry": false,
+    "telemetry.enableCrashReporter": false
 }

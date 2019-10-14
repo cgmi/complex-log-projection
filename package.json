@@ -11,7 +11,8 @@
     "build": "parcel build src/index.html --out-dir build/default --no-content-hash",
     "build-local": "parcel build src/index.html --public-url ./ --out-dir build/local --no-content-hash",
     "build-github": "parcel build src/index.html --public-url /complex-log-projection/ --out-dir build/github --no-content-hash",
-    "deploy": "gh-pages -d build/github"
+    "deploy": "gh-pages -d build/github",
+    "test": "tape -r esm test/*-test.js"
   },
   "dependencies": {
     "d3": "^5.12.0",
@@ -22,7 +23,9 @@
   },
   "devDependencies": {
     "cssnano": "^4.1.10",
+    "esm": "^3.2.25",
     "gh-pages": "^2.1.1",
-    "parcel-bundler": "^1.12.4"
+    "parcel-bundler": "^1.12.4",
+    "tape": "^4.11.0"
   }
 }

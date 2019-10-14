@@ -73,7 +73,7 @@ async function prepare() {
     // Download world map and set desired projection
     world = await loadTopojson("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json");
 
-    changeProjection(projections.azimuthal); 
+    changeProjection(projections.azimuthal);
 
     // Main display to render the map onto
     // SVG
@@ -93,14 +93,16 @@ async function prepare() {
     display = svg;
 
     // Mouse coordinates
-    display.on("mousedown", function() {
-        console.log(projection.invert(d3.mouse(this)));
+    display.on("mousedown", function () {
+        let [lambda, phi] = projection.invert(d3.mouse(this));
+        projection.rotate([-lambda, -phi]);
+        update();
     });
 
     // Keyboard interaction
     display.attr("focusable", false);
-    display.on("keydown", function() {
-        switch(d3.event.code) {
+    display.on("keydown", function () {
+        switch (d3.event.code) {
             case "KeyW":
                 translateMap(0, -translateStep);
                 break;
@@ -115,7 +117,7 @@ async function prepare() {
                 break;
         }
     });
-    display.on("focus", function() {});
+    display.on("focus", function () { });
 
     // Graticule checkbox, triggers re-render
     const graticuleCheckbox = d3.select("input#graticuleCheckbox");
@@ -180,7 +182,7 @@ async function prepare() {
 
 /** Render projected map to SVG */
 function renderSvg() {
-    const width =  svg.attr("width");
+    const width = svg.attr("width");
     const height = svg.attr("height");
 
     // Sync SVG settings
@@ -195,7 +197,7 @@ function renderSvg() {
     svg_outline.attr("d", path);
 
     if (renderParams.doColorCountries) {
-        svg_countries.style("fill", function(d) {return colorScale(d.id); });
+        svg_countries.style("fill", function (d) { return colorScale(d.id); });
     } else {
         svg_countries.style("fill", "none");
     }

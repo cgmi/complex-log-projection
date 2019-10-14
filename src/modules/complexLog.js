@@ -45,6 +45,9 @@ complexLogRaw.invert = function(x, y) {
     // Undo offset from forward projection
     invLogComp.re -= CARTESIAN_OFFSET;
     invLogComp.im -= CARTESIAN_OFFSET;
+
+    // Undo rotation
+    invLogComp = invLogComp.mul(math.complex(math.cos(math.pi / 2), math.sin(math.pi / 2)));
     
     return d3.geoAzimuthalEquidistantRaw.invert(invLogComp.re, invLogComp.im);
 }

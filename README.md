@@ -45,6 +45,7 @@ Usage: `yarn run <script>` or `yarn <script>`
 | `build-local`       | Builds for production, runs locally without a webserver, public URL: `./`                                               |
 | `build-github`      | Builds for production and deployment as a GitHub page, public URL: `/complex-log-projection/`                           |
 | `deploy`            | Deploys the current build from `build/github` to the [live GitHub page](https://cgmi.github.io/complex-log-projection/) |
+| `test`              | Runs all tests                                                                                                          |
 
 ## Visual Studio Code specifics
 

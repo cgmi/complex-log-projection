@@ -6,10 +6,13 @@
             "type": "chrome",
             "request": "launch",
             "url": "http://localhost:1234/",
-            "webRoot": "${workspaceFolder}/src",
+            "webRoot": "${workspaceFolder}/complex-log-projection/src",
             "trace": true,
             "breakOnLoad": true,
             "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "*": "${webRoot}/*"
+              }
         },
         {
             "name": "Launch Firefox DE",

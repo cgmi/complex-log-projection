@@ -1,7 +1,7 @@
 import * as d3 from "../vendor/d3-bundle";
 import * as math from "mathjs";
 
-const cartesianOffset = 0.01;
+const CARTESIAN_OFFSET = 0.01;
 
 
 /**
@@ -11,22 +11,24 @@ const cartesianOffset = 0.01;
  * @param {Number} phi Latitude
  */
 export function complexLogRaw(lambda, phi) {
-    let [re, im] = d3.geoAzimuthalEquidistantRaw(lambda, phi);
+    // Azimuthal equidistant projection
+    // Interpret projected point on complex plane
+    let aziComp = math.complex();
+    [aziComp.re, aziComp.im] = d3.geoAzimuthalEquidistantRaw(lambda, phi);
+
+    // Rotate by -90 degrees
+    aziComp = aziComp.mul(math.complex(math.cos(-math.pi / 2), math.sin(-math.pi / 2)));
 
     // Small cartesian offset to prevent logarithm of 0
-    re += cartesianOffset;
-    im += cartesianOffset;
-
-    let logRe = re;
-    let logIm = im;
+    aziComp.re += CARTESIAN_OFFSET;
+    aziComp.im += CARTESIAN_OFFSET;
 
     // Apply complex logarithm 
-    logRe = math.log(math.sqrt(re ** 2 + im ** 2));
-    logIm = math.atan2(im, re); 
-    // Swap axis
-    [logRe, logIm] = [logIm, logRe]
+    let logComp = math.complex();
+    logComp.re = math.log(math.sqrt(aziComp.re ** 2 + aziComp.im ** 2));
+    logComp.im = math.atan2(aziComp.im, aziComp.re);
 
-    return [logRe, logIm];
+    return [logComp.re, logComp.im];
 }
 
 
@@ -35,18 +37,16 @@ export function complexLogRaw(lambda, phi) {
  * @desc Projects points (from pixels) to longitude and latitude.
  */
 complexLogRaw.invert = function(x, y) {
-    let invLogRe = x;
-    let invLogIm = y;
-
     // Inverse complex logarithm (complex exponential function)
-    invLogRe = math.exp(x) * math.cos(y);
-    invLogIm = math.exp(x) * math.sin(y);
+    let invLogComp = math.complex();
+    invLogComp.re = math.exp(x) * math.cos(y);
+    invLogComp.im = math.exp(x) * math.sin(y);
 
     // Undo offset from forward projection
-    invLogRe -= cartesianOffset;
-    invLogIm -= cartesianOffset;
+    invLogComp.re -= CARTESIAN_OFFSET;
+    invLogComp.im -= CARTESIAN_OFFSET;
     
-    return d3.geoAzimuthalEquidistantRaw.invert(invLogRe, invLogIm);
+    return d3.geoAzimuthalEquidistantRaw.invert(invLogComp.re, invLogComp.im);
 }
 
 
@@ -54,5 +54,5 @@ complexLogRaw.invert = function(x, y) {
  * Complex logarithm projection
  */
 export function complexLog() {
-    return d3.geoProjection(complexLogRaw);
+    return d3.geoProjection(complexLogRaw).angle(90);
 }

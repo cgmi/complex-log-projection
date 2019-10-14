@@ -5,13 +5,13 @@ import { loadTopojson } from "./modules/geo-loader";
 import { complexLog } from "./modules/complexLog";
 
 // TODO: Rename and refactor the following lines
-let world, projection, canvas, context, svg, svg_background, svg_countries, svg_graticule, svg_outline, display;
+let world, projection, svg, svg_background, svg_countries, svg_graticule, svg_outline, display;
 
 // Various render settings
 let renderParams = {
-    useSvg: true,
     showGraticule: true,
     showOutline: true,
+    doColorCountries: true,
     scaleFactor: 0.9,
     width: 1500,
     height: 1500,
@@ -67,42 +67,30 @@ function translateMap(x, y) {
 
 /**
  * Prepare site for map rendering
- * @desc Grabs TopoJSON map and sets projection. Selects canvas and sets graticule checkbox.
+ * @desc Grabs TopoJSON map and sets projection. Appends SVG and creates UI functionality.
  */
 async function prepare() {
     // Download world map and set desired projection
-    //world = await loadTopojson("https://cdn.jsdelivr.net/npm/world-atlas@2/land-50m.json");
     world = await loadTopojson("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json");
 
     changeProjection(projections.azimuthal); 
 
     // Main display to render the map onto
-    if (renderParams.useSvg) {
-        // SVG
-        svg = d3.select("div#display").append("svg").attr("width", renderParams.width).attr("height", renderParams.height);
+    // SVG
+    svg = d3.select("div#display").append("svg").attr("width", renderParams.width).attr("height", renderParams.height);
+    // SVG background
+    svg_background = svg.append("g").append("rect").attr("fill", style.backgroundFill).attr("stroke", style.backgroundStroke);
+    // SVG countries
+    svg_countries = svg.append("g").selectAll("path").data(world.countries.features).enter().append("path");
+    svg_countries.attr("fill", style.countriesFill).attr("stroke", style.countriesStroke);
+    // SVG graticule
+    svg_graticule = svg.append("g").append("path").datum(world.graticule);
+    svg_graticule.attr("fill", "none").attr("stroke", style.graticuleStroke);
+    // SVG outline
+    svg_outline = svg.append("g").append("path").datum(world.outline);
+    svg_outline.attr("fill", "none").attr("stroke", style.outlineStroke);
 
-        // SVG background
-        svg_background = svg.append("g").append("rect").attr("fill", style.backgroundFill).attr("stroke", style.backgroundStroke);
-
-        // SVG countries
-        svg_countries = svg.append("g").selectAll("path").data(world.countries.features).enter().append("path");
-        svg_countries.attr("fill", style.countriesFill).attr("stroke", style.countriesStroke);
-
-        // SVG graticule
-        svg_graticule = svg.append("g").append("path").datum(world.graticule);
-        svg_graticule.attr("fill", "none").attr("stroke", style.graticuleStroke);
-
-        // SVG outline
-        svg_outline = svg.append("g").append("path").datum(world.outline);
-        svg_outline.attr("fill", "none").attr("stroke", style.outlineStroke);
-
-        display = svg;
-    } else {
-        // Canvas
-        canvas = d3.select("div#display").append("canvas").attr("width", renderParams.width).attr("height", renderParams.height);
-        context = canvas.node().getContext("2d");
-        display = canvas;
-    }
+    display = svg;
 
     // Mouse coordinates
     display.on("mousedown", function() {
@@ -142,6 +130,14 @@ async function prepare() {
     outlineCheckbox.property("checked", renderParams.showOutline);
     outlineCheckbox.on("change", () => {
         renderParams.showOutline = outlineCheckbox.property("checked");
+        update();
+    });
+
+    // Color checkbox, triggers re-render
+    const colorCheckbox = d3.select("input#colorCheckbox");
+    colorCheckbox.property("checked", renderParams.doColorCountries);
+    colorCheckbox.on("change", () => {
+        renderParams.doColorCountries = colorCheckbox.property("checked");
         update();
     });
 
@@ -194,59 +190,14 @@ function renderSvg() {
     // Render SVG
     let path = d3.geoPath(projection);
     svg_background.attr("width", width).attr("height", height);
-    svg_countries.attr("d", path).style("fill", function(d) {return colorScale( d.id); });
+    svg_countries.attr("d", path);
     svg_graticule.attr("d", path);
     svg_outline.attr("d", path);
-}
 
-
-/**
- * Render projected map to canvas
- */
-function renderCanvas() {
-    // Calculate scale for projection to fit canvas
-    const width = canvas.attr("width");
-    const [[x0, y0], [x1, y1]] = d3.geoPath(projection.fitWidth(width, world.outline)).bounds(world.outline);
-    const dy = Math.ceil(y1 - y0), l = Math.min(Math.ceil(x1 - x0), dy);
-    projection.scale(renderParams.scaleFactor * projection.scale() * (l - 1) / l).precision(0.2);
-    const height = dy;
-
-    // Prepare canvas
-    canvas.attr("height", height);
-
-    // Set up geo path and start rendering
-    const path = d3.geoPath(projection, context);
-    context.clearRect(0, 0, canvas.node().width, canvas.node().height);
-    context.save();
-
-    // Background
-    context.beginPath(), path(world.outline), context.fillStyle = style.backgroundFill, context.strokeStyle = style.backgroundStroke;
-    if (style.backgroundFill != "none") {
-        context.fillRect(0, 0, width, height);
-    }
-    if (style.backgroundStroke != "none") {
-        context.strokeRect(0, 0, width, height);
-    }
-
-    // Graticule
-    if (renderParams.showGraticule) {
-        context.beginPath(), path(world.graticule), context.strokeStyle = style.graticuleStroke, context.stroke();
-        context.restore();
-    }  
-    
-    // Countries
-    context.beginPath(), path(world.countries), context.fillStyle = style.countriesFill, context.strokeStyle = style.countriesStroke;
-    if (style.countriesFill != "none") {
-        context.fill()
-    }
-    if (style.countriesStroke != "none") {
-        context.stroke();
-    }
-    context.restore();
-
-    // Globe outline
-    if (renderParams.showOutline) {
-        context.beginPath(), path(world.outline), context.strokeStyle = style.outlineStroke, context.stroke();
+    if (renderParams.doColorCountries) {
+        svg_countries.style("fill", function(d) {return colorScale(d.id); });
+    } else {
+        svg_countries.style("fill", "none");
     }
 }
 
@@ -255,11 +206,7 @@ function renderCanvas() {
  * Trigger re-rendering
  */
 function update() {
-    if (renderParams.useSvg) {
-        renderSvg();
-    } else {
-        renderCanvas();
-    }
+    renderSvg();
 }
 
 

@@ -10,17 +10,22 @@ const complexLog = require("../src/modules/complexLog")
  * yields original longitude and latitude
  */
 tape("Inverse complex log test", function(test) {
-    // TODO: Include more cases
-    const LAMBDA = 0.1;
-    const PHI = 0.2;
-
+    let testCases = [ [0, 0], [0.1, 0.2], [Math.PI, 0], [0, Math.PI], [Math.PI, Math.PI] ];
     const projectionRaw = complexLog.complexLogRaw;
 
-    let [x, y] = projectionRaw(LAMBDA, PHI);
-    let [lambda, phi] = projectionRaw.invert(x, y);
+    for (const testCase of testCases) {
+        let [x, y] = projectionRaw(testCase[0], testCase[1]);
+        let [lambda, phi] = projectionRaw.invert(x, y);
 
-    test.ok(almostEqual(LAMBDA, lambda), "longitude");
-    test.ok(almostEqual(PHI, phi), "latitude");
+        // Module and shift to check for equality in radians
+        lambda = lambda % Math.PI + Math.PI;
+        phi = phi % Math.PI + Math.PI;
+        testCase[0] = testCase[0] % Math.PI + Math.PI;
+        testCase[1] = testCase[1] % Math.PI + Math.PI;
+    
+        test.ok(almostEqual(testCase[0], lambda), "longitude");
+        test.ok(almostEqual(testCase[1], phi), "latitude");
+    }
 
     test.end();
 });

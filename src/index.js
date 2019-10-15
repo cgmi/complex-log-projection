@@ -13,8 +13,9 @@ let renderParams = {
     showOutline: true,
     doColorCountries: true,
     scaleFactor: 0.9,
-    width: 1500,
-    height: 1500,
+    width: 900,
+    height: 900,
+    currentRotation: [0, 0]
 }
 
 let style = {
@@ -30,7 +31,7 @@ let baseScale;
 
 let projections = {
     complexLog: complexLog(),
-    azimuthal: d3.geoAzimuthalEquidistant()
+    azimuthal: d3.geoAzimuthalEqualArea()
 }
 
 let translateStep = 10;
@@ -50,6 +51,7 @@ function changeProjection(newProjection) {
     baseScale = projection.scale()
     projection.scale(renderParams.scaleFactor * baseScale);
     projection.precision(0.2);
+    projection.rotate(renderParams.currentRotation)
 }
 
 
@@ -92,11 +94,19 @@ async function prepare() {
 
     display = svg;
 
-    // Mouse coordinates
+    // Transition to clicked position
     display.on("mousedown", function () {
         let [lambda, phi] = projection.invert(d3.mouse(this));
-        projection.rotate([-lambda, -phi]);
-        update();
+        renderParams.currentRotation = [-lambda, -phi];
+        
+        d3.transition().duration(650).tween("rotate", function() {
+            let rotationInterpolator = d3.interpolate(projection.rotate(), renderParams.currentRotation);
+            
+            return function(t) {
+                projection.rotate(rotationInterpolator(t));
+                update();
+            }
+        }).transition();
     });
 
     // Keyboard interaction
@@ -179,6 +189,7 @@ async function prepare() {
 
 
 // TODO: Put rendering into separate module
+// TODO: Do we have to set all these parameters in the render function?
 
 /** Render projected map to SVG */
 function renderSvg() {

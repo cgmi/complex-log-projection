@@ -14,7 +14,7 @@ export function complexLogRaw(lambda, phi) {
     // Azimuthal equidistant projection
     // Interpret projected point on complex plane
     let aziComp = math.complex();
-    [aziComp.re, aziComp.im] = d3.geoAzimuthalEquidistantRaw(lambda, phi);
+    [aziComp.re, aziComp.im] = d3.geoAzimuthalEqualAreaRaw(lambda, phi);
 
     // Rotate by -90 degrees
     aziComp = aziComp.mul(math.complex(math.cos(-math.pi / 2), math.sin(-math.pi / 2)));
@@ -49,7 +49,7 @@ complexLogRaw.invert = function(x, y) {
     // Undo rotation
     invLogComp = invLogComp.mul(math.complex(math.cos(math.pi / 2), math.sin(math.pi / 2)));
     
-    return d3.geoAzimuthalEquidistantRaw.invert(invLogComp.re, invLogComp.im);
+    return d3.geoAzimuthalEqualAreaRaw.invert(invLogComp.re, invLogComp.im);
 }
 
 

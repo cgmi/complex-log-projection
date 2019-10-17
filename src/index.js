@@ -43,15 +43,40 @@ let colorScale = d3.scaleOrdinal(d3.schemeCategory10);
  * Changes current projection and re-fits display area
  * @param {d3.GeoProjection} newProjection 
  */
-function changeProjection(newProjection) {
+function changeProjection(newProjection) { 
     projection = newProjection;
     let fittingObject = newProjection == projections.complexLog ? world.countries : world.outline;
     projection.fitSize([renderParams.width, renderParams.height], fittingObject);
 
+    // Clipping along 180°/-180° line in complex plane
+    if (projection == projections.complexLog) {
+        const n = 100; // precision
+        const p = 1; // padding
+        let viewport = {
+            type: "Polygon",
+            coordinates: [
+            [
+                ...Array.from({length: n}, (_, t) => [p + (renderParams.width - p * 2) * t / n, p]),
+                ...Array.from({length: n}, (_, t) => [renderParams.width - p, (renderParams.height - p * 2) * t / n + p]),
+                ...Array.from({length: n}, (_, t) => [p + (renderParams.width - p * 2) * (n - t) / n, renderParams.height - p]),
+                ...Array.from({length: n}, (_, t) => [p, (renderParams.height - p * 2) * (n - t) / n + p]),
+                [p, p]
+            ].map(p => projections.complexLog.invert(p))
+            ]
+        }
+
+        console.log(viewport.coordinates);
+
+        projection.preclip(d3.geoClipPolygon({
+            type: "Polygon",
+            coordinates: [viewport.coordinates[0]]
+        }));
+    }
+
     baseScale = projection.scale()
     projection.scale(renderParams.scaleFactor * baseScale);
     projection.precision(0.2);
-    projection.rotate(renderParams.currentRotation)
+    projection.rotate(renderParams.currentRotation);
 }
 
 
@@ -96,7 +121,12 @@ async function prepare() {
 
     // Transition to clicked position
     display.on("mousedown", function () {
-        let [lambda, phi] = projection.invert(d3.mouse(this));
+        const mousePos = d3.mouse(this);
+        const worldPos = projection.invert(mousePos);
+        
+        //console.log(`[${mousePos[0]}, ${mousePos[1]}] was [${worldPos[0]}, ${worldPos[1]}]`)
+
+        let [lambda, phi] = projection.invert(mousePos);
         renderParams.currentRotation = [-lambda, -phi];
         
         d3.transition().duration(650).tween("rotate", function() {

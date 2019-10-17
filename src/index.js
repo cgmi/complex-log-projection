@@ -50,7 +50,7 @@ function changeProjection(newProjection) {
 
     // Clipping along 180°/-180° line in complex plane
     if (projection == projections.complexLog) {
-        const n = 100; // precision
+        const n = 10; // precision
         const p = 1; // padding
         let viewport = {
             type: "Polygon",
@@ -64,8 +64,6 @@ function changeProjection(newProjection) {
             ].map(p => projections.complexLog.invert(p))
             ]
         }
-
-        console.log(viewport.coordinates);
 
         projection.preclip(d3.geoClipPolygon({
             type: "Polygon",

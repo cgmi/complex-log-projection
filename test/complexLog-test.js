@@ -4,7 +4,7 @@ const almostEqual = require("almost-equal")
 const d3 = require("../src/vendor/d3-bundle");
 const complexLog = require("../src/modules/complexLog")
 
-
+// FIXME: Not working
 /**
  * Tests if inverse complex logarithm (complex exponential function)
  * yields original longitude and latitude
@@ -22,6 +22,8 @@ tape("Inverse complex log test", function(test) {
         phi = phi % Math.PI + Math.PI;
         testCase[0] = testCase[0] % Math.PI + Math.PI;
         testCase[1] = testCase[1] % Math.PI + Math.PI;
+
+        console.log(testCase[0] + " " + testCase[1] + " " + lambda + " " + phi);
     
         test.ok(almostEqual(testCase[0], lambda), "longitude");
         test.ok(almostEqual(testCase[1], phi), "latitude");

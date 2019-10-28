@@ -2,10 +2,12 @@
 import "regenerator-runtime/runtime"; // Fix regenerator-runtime issue with parcel...
 import * as d3 from "./vendor/d3-bundle";
 import { loadTopojson } from "./modules/geo-loader";
-import { complexLog } from "./modules/complexLog";
+import { complexLog, complexLogRaw } from "./modules/complexLog";
 
 // TODO: Rename and refactor the following lines
 let world, projection, svg, svg_background, svg_countries, svg_graticule, svg_outline, display;
+
+const topoJsonUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
 
 // Various render settings
 let renderParams = {
@@ -18,7 +20,7 @@ let renderParams = {
     currentRotation: [0, 0]
 }
 
-let style = {
+const style = {
     backgroundFill: "none",
     backgroundStroke: "black",
     countriesFill: "none",
@@ -34,9 +36,9 @@ let projections = {
     azimuthal: d3.geoAzimuthalEqualArea()
 }
 
-let translateStep = 10;
+const translateStep = 10;
 
-let colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
 
 
 /**
@@ -45,14 +47,17 @@ let colorScale = d3.scaleOrdinal(d3.schemeCategory10);
  */
 function changeProjection(newProjection) { 
     projection = newProjection;
+
+    // Fit size based on projection
     let fittingObject = newProjection == projections.complexLog ? world.countries : world.outline;
     projection.fitSize([renderParams.width, renderParams.height], fittingObject);
 
+    // FIXME: Doesn't work with azimuthal equidistant
     // Clipping along 180°/-180° line in complex plane
     if (projection == projections.complexLog) {
-        const n = 10; // precision
-        const p = 1; // padding
-        let viewport = {
+        const n = 10; // Precision, how many vertices to insert along clipping polygon rectangle lines
+        const p = 1;  // Padding along 180°/-180° degree line in complex log projection, choose large enough to prevent overlapping polygons across map
+        let viewportClip = {
             type: "Polygon",
             coordinates: [
             [
@@ -61,20 +66,23 @@ function changeProjection(newProjection) {
                 ...Array.from({length: n}, (_, t) => [p + (renderParams.width - p * 2) * (n - t) / n, renderParams.height - p]),
                 ...Array.from({length: n}, (_, t) => [p, (renderParams.height - p * 2) * (n - t) / n + p]),
                 [p, p]
-            ].map(p => projections.complexLog.invert(p))
+            ].map(point => projection.invert(point))
             ]
-        }
+        };
 
         projection.preclip(d3.geoClipPolygon({
             type: "Polygon",
-            coordinates: [viewport.coordinates[0]]
+            coordinates: [viewportClip.coordinates[0].map(d3.geoRotation(projection.rotate()))] // Clip polygon must also be rotated
         }));
     }
 
-    baseScale = projection.scale()
-    projection.scale(renderParams.scaleFactor * baseScale);
-    projection.precision(0.2);
+    // Rotation dictates projection point of interest
     projection.rotate(renderParams.currentRotation);
+
+    // Set scale after pre-clipping so it doesn't affect clipping polygon
+    // Base scale is the scale that is derived from fitSize() for that projection
+    baseScale = projection.scale()
+    projection.scale(renderParams.scaleFactor * baseScale);  
 }
 
 
@@ -96,7 +104,7 @@ function translateMap(x, y) {
  */
 async function prepare() {
     // Download world map and set desired projection
-    world = await loadTopojson("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json");
+    world = await loadTopojson(topoJsonUrl);
 
     changeProjection(projections.azimuthal);
 
@@ -104,15 +112,15 @@ async function prepare() {
     // SVG
     svg = d3.select("div#display").append("svg").attr("width", renderParams.width).attr("height", renderParams.height);
     // SVG background
-    svg_background = svg.append("g").append("rect").attr("fill", style.backgroundFill).attr("stroke", style.backgroundStroke);
+    svg_background = svg.append("g").append("rect").attr("fill", style.backgroundFill).attr("stroke", style.backgroundStroke).attr("id", "background");
     // SVG countries
-    svg_countries = svg.append("g").selectAll("path").data(world.countries.features).enter().append("path");
+    svg_countries = svg.append("g").selectAll("path").data(world.countries.features).enter().append("path").attr("id", "countries");
     svg_countries.attr("fill", style.countriesFill).attr("stroke", style.countriesStroke);
     // SVG graticule
-    svg_graticule = svg.append("g").append("path").datum(world.graticule);
+    svg_graticule = svg.append("g").append("path").datum(world.graticule).attr("id", "graticule");
     svg_graticule.attr("fill", "none").attr("stroke", style.graticuleStroke);
     // SVG outline
-    svg_outline = svg.append("g").append("path").datum(world.outline);
+    svg_outline = svg.append("g").append("path").datum(world.outline).attr("id", "outline");
     svg_outline.attr("fill", "none").attr("stroke", style.outlineStroke);
 
     display = svg;
@@ -121,12 +129,10 @@ async function prepare() {
     display.on("mousedown", function () {
         const mousePos = d3.mouse(this);
         const worldPos = projection.invert(mousePos);
-        
-        //console.log(`[${mousePos[0]}, ${mousePos[1]}] was [${worldPos[0]}, ${worldPos[1]}]`)
 
         let [lambda, phi] = projection.invert(mousePos);
         renderParams.currentRotation = [-lambda, -phi];
-        
+
         d3.transition().duration(650).tween("rotate", function() {
             let rotationInterpolator = d3.interpolate(projection.rotate(), renderParams.currentRotation);
             
@@ -157,20 +163,20 @@ async function prepare() {
     });
     display.on("focus", function () { });
 
-    // Graticule checkbox, triggers re-render
+    // Graticule checkbox
     const graticuleCheckbox = d3.select("input#graticuleCheckbox");
     graticuleCheckbox.property("checked", renderParams.showGraticule);
     graticuleCheckbox.on("change", () => {
         renderParams.showGraticule = graticuleCheckbox.property("checked");
-        update();
+        svg_graticule.attr("visibility", renderParams.showGraticule ? "visible" : "hidden");
     });
-
-    // Outline checkbox, triggers re-render
+     
+    // Outline checkbox
     const outlineCheckbox = d3.select("input#outlineCheckbox");
     outlineCheckbox.property("checked", renderParams.showOutline);
     outlineCheckbox.on("change", () => {
         renderParams.showOutline = outlineCheckbox.property("checked");
-        update();
+        svg_outline.attr("visibility", renderParams.showOutline ? "visible" : "hidden");
     });
 
     // Color checkbox, triggers re-render
@@ -217,24 +223,26 @@ async function prepare() {
 
 
 // TODO: Put rendering into separate module
-// TODO: Do we have to set all these parameters in the render function?
 
 /** Render projected map to SVG */
 function renderSvg() {
-    const width = svg.attr("width");
-    const height = svg.attr("height");
-
-    // Sync SVG settings
-    svg_graticule.attr("visibility", renderParams.showGraticule ? "visible" : "hidden");
-    svg_outline.attr("visibility", renderParams.showOutline ? "visible" : "hidden");
+    let width = svg.attr("width");
+    let height = svg.attr("height");
 
     // Render SVG
     let path = d3.geoPath(projection);
     svg_background.attr("width", width).attr("height", height);
     svg_countries.attr("d", path);
     svg_graticule.attr("d", path);
-    svg_outline.attr("d", path);
 
+    // Outline cannot be rendered properly with complex log
+    if (projection != projections.complexLog) {
+        svg_outline.attr("d", path);
+    } else {
+        svg_outline.attr("d", "");        
+    }
+
+    // Color coding for countries
     if (renderParams.doColorCountries) {
         svg_countries.style("fill", function (d) { return colorScale(d.id); });
     } else {

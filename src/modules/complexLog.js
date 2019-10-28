@@ -1,8 +1,7 @@
 import * as d3 from "../vendor/d3-bundle";
 import * as math from "mathjs";
 
-const CARTESIAN_OFFSET = 0.01;
-
+const CARTESIAN_OFFSET = 0.00000001;
 
 /**
  * Complex logarithm raw projection
@@ -20,10 +19,12 @@ export function complexLogRaw(lambda, phi) {
     aziComp = aziComp.mul(math.complex(math.cos(-math.pi / 2), math.sin(-math.pi / 2)));
 
     // Small cartesian offset to prevent logarithm of 0
-    aziComp.re += CARTESIAN_OFFSET;
-    aziComp.im += CARTESIAN_OFFSET;
+    if (!aziComp.re && !aziComp.im) {
+        aziComp.re += CARTESIAN_OFFSET;
+        aziComp.im += CARTESIAN_OFFSET;
+    }
 
-    // Apply complex logarithm 
+    // Apply complex logarithm
     let logComp = math.complex();
     logComp.re = math.log(math.sqrt(aziComp.re ** 2 + aziComp.im ** 2));
     logComp.im = math.atan2(aziComp.im, aziComp.re);
@@ -43,8 +44,8 @@ complexLogRaw.invert = function(x, y) {
     invLogComp.im = math.exp(x) * math.sin(y);
 
     // Undo offset from forward projection
-    invLogComp.re -= CARTESIAN_OFFSET;
-    invLogComp.im -= CARTESIAN_OFFSET;
+    //invLogComp.re -= CARTESIAN_OFFSET;
+    //invLogComp.im -= CARTESIAN_OFFSET;
 
     // Undo rotation
     invLogComp = invLogComp.mul(math.complex(math.cos(math.pi / 2), math.sin(math.pi / 2)));

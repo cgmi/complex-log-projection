@@ -50,6 +50,7 @@ function changeProjection(newProjection) {
 
     // Fit size based on projection
     let fittingObject = newProjection == projections.complexLog ? world.countries : world.outline;
+    // FIXME: fitSize() does not really work for complex log, currently we fix this in the renderSvg() function to show the full complex log projection
     projection.fitSize([renderParams.width, renderParams.height], fittingObject);
 
     // FIXME: Doesn't work with azimuthal equidistant
@@ -66,13 +67,13 @@ function changeProjection(newProjection) {
                 ...Array.from({length: n}, (_, t) => [p + (renderParams.width - p * 2) * (n - t) / n, renderParams.height - p]),
                 ...Array.from({length: n}, (_, t) => [p, (renderParams.height - p * 2) * (n - t) / n + p]),
                 [p, p]
-            ].map(point => projection.invert(point))
+            ].map(point => projection.invert(point)).map(d3.geoRotation(projection.rotate())) // Clip polygon must also be rotated
             ]
         };
 
         projection.preclip(d3.geoClipPolygon({
             type: "Polygon",
-            coordinates: [viewportClip.coordinates[0].map(d3.geoRotation(projection.rotate()))] // Clip polygon must also be rotated
+            coordinates: [viewportClip.coordinates[0]] 
         }));
     }
 
@@ -228,6 +229,12 @@ async function prepare() {
 function renderSvg() {
     let width = svg.attr("width");
     let height = svg.attr("height");
+
+    // HACK: This should not happen at this point, fitSize() should determine the correct settings
+    if (projection == projections.complexLog) {
+        [, height] = projection.translate();
+        svg.attr("height", height);
+    }
 
     // Render SVG
     let path = d3.geoPath(projection);

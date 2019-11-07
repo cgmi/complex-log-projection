@@ -1,11 +1,19 @@
 // TODO: Integrate d3-bundle as module into package manager
-import "regenerator-runtime/runtime"; // Fix regenerator-runtime issue with parcel...
+import "regenerator-runtime/runtime"; // Fixes regenerator-runtime issue with parcel...
 import * as d3 from "./vendor/d3-bundle";
 import { loadTopojson } from "./modules/geo-loader";
-import { complexLog, complexLogRaw } from "./modules/complexLog";
+import { complexLog } from "./modules/complexLog";
 
 // TODO: Rename and refactor the following lines
-let world, projection, svg, svg_background, svg_countries, svg_graticule, svg_outline, display;
+let world, 
+    projection,
+    path, 
+    svg, 
+    svg_background, 
+    svg_countries, 
+    svg_graticule, 
+    svg_outline, 
+    display;
 
 const topoJsonUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
 
@@ -14,10 +22,10 @@ let renderParams = {
     showGraticule: true,
     showOutline: true,
     doColorCountries: true,
-    scaleFactor: 0.9,
+    scaleFactor: 1,
     width: 900,
     height: 900,
-    currentRotation: [0, 0]
+    currentRotation: [45, 20]
 }
 
 const style = {
@@ -31,13 +39,14 @@ const style = {
 
 let baseScale;
 
-let projections = {
+const projections = {
     complexLog: complexLog(),
     azimuthal: d3.geoAzimuthalEqualArea()
 }
 
 const translateStep = 10;
 
+// Color scale used for country coloring
 const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
 
 
@@ -49,8 +58,7 @@ function changeProjection(newProjection) {
     projection = newProjection;
 
     // Fit size based on projection
-    let fittingObject = newProjection == projections.complexLog ? world.countries : world.outline;
-    // FIXME: fitSize() does not really work for complex log, currently we fix this in the renderSvg() function to show the full complex log projection
+    const fittingObject = newProjection == projections.complexLog ? world.countries : world.outline;
     projection.fitSize([renderParams.width, renderParams.height], fittingObject);
 
     // FIXME: Doesn't work with azimuthal equidistant
@@ -80,10 +88,14 @@ function changeProjection(newProjection) {
     // Rotation dictates projection point of interest
     projection.rotate(renderParams.currentRotation);
 
+    // FIXME: Scale affects translate
     // Set scale after pre-clipping so it doesn't affect clipping polygon
     // Base scale is the scale that is derived from fitSize() for that projection
     baseScale = projection.scale()
     projection.scale(renderParams.scaleFactor * baseScale);  
+
+    // Update path generator
+    path = d3.geoPath(projection);
 }
 
 
@@ -93,7 +105,7 @@ function changeProjection(newProjection) {
  * @param {Number} y 
  */
 function translateMap(x, y) {
-    let t = projection.translate();
+    const t = projection.translate();
     projection.translate([t[0] + x, t[1] + y]);
     update();
 }
@@ -107,6 +119,7 @@ async function prepare() {
     // Download world map and set desired projection
     world = await loadTopojson(topoJsonUrl);
 
+    // Set initial projection
     changeProjection(projections.azimuthal);
 
     // Main display to render the map onto
@@ -128,14 +141,11 @@ async function prepare() {
 
     // Transition to clicked position
     display.on("mousedown", function () {
-        const mousePos = d3.mouse(this);
-        const worldPos = projection.invert(mousePos);
-
-        let [lambda, phi] = projection.invert(mousePos);
+        const [lambda, phi] = projection.invert(d3.mouse(this));
         renderParams.currentRotation = [-lambda, -phi];
 
-        d3.transition().duration(650).tween("rotate", function() {
-            let rotationInterpolator = d3.interpolate(projection.rotate(), renderParams.currentRotation);
+        d3.transition().duration(1000).tween("rotate", function() {
+            const rotationInterpolator = d3.interpolate(projection.rotate(), renderParams.currentRotation);
             
             return function(t) {
                 projection.rotate(rotationInterpolator(t));
@@ -208,7 +218,7 @@ async function prepare() {
     scaleRange.on("input", () => {
         renderParams.scaleFactor = +scaleRange.property("value");
         scaleNumber.property("value", renderParams.scaleFactor);
-        projection.scale(renderParams.scaleFactor * baseScale)
+        projection.scale(renderParams.scaleFactor * baseScale);
 
         update();
     });
@@ -227,17 +237,10 @@ async function prepare() {
 
 /** Render projected map to SVG */
 function renderSvg() {
-    let width = svg.attr("width");
-    let height = svg.attr("height");
-
-    // HACK: This should not happen at this point, fitSize() should determine the correct settings
-    if (projection == projections.complexLog) {
-        [, height] = projection.translate();
-        svg.attr("height", height);
-    }
+    const width = svg.attr("width");
+    const height = svg.attr("height");
 
     // Render SVG
-    let path = d3.geoPath(projection);
     svg_background.attr("width", width).attr("height", height);
     svg_countries.attr("d", path);
     svg_graticule.attr("d", path);

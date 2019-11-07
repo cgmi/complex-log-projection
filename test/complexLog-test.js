@@ -31,4 +31,3 @@ tape("Inverse complex log test", function(test) {
 
     test.end();
 });
-

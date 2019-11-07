@@ -11,6 +11,18 @@
     margin: 5px;
 }
 
+.display {
+    float: left;
+}
+
+.display-left {
+    margin-right: 5px;
+}
+
+.display-right {
+    margin-left: 5px;
+}
+
 .main {
     margin-top: 75px;
 }

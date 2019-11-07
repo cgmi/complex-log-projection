@@ -1,18 +1,15 @@
 import "regenerator-runtime/runtime"; // Fixes regenerator-runtime issue with parcel...
 import * as d3 from "./vendor/d3-bundle";
-import { loadWorld, loadGermany } from "./modules/geo-loader";
+import { loadWorld } from "./modules/geo-loader";
 import { complexLog } from "./modules/complexLog";
 
 let world, 
-    projection,
-    path, 
-    svg, 
-    svg_background, 
-    svg_countries, 
-    svg_graticule, 
-    svg_outline, 
-    display,
-    svg_viewportClip;
+    projection_left,
+    projection_right,
+    path_left,
+    path_right;
+
+let displays = {};
 
 // TODO: Example with street data
 const topoJsonUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
@@ -25,8 +22,8 @@ let renderParams = {
     showViewportClip: false,
     doColorCountries: true,
     scaleFactor: 1,
-    width: 900,
-    height: 900,
+    width: 600,
+    height: 600,
     currentRotation: [0, 0]
 }
 
@@ -43,7 +40,7 @@ let baseScale;
 
 const projections = {
     complexLog: complexLog(),
-    azimuthal: d3.geoOrthographic()
+    azimuthal: d3.geoAzimuthalEqualArea()
 }
 
 const translateStep = 10;
@@ -51,41 +48,41 @@ const translateStep = 10;
 // Color scale used for country coloring
 const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
 
-/**
- * Changes current projection and re-fits display area
- * @param {d3.GeoProjection} newProjection 
- */
-function changeProjection(newProjection) { 
-    projection = newProjection;
+// /**
+//  * Changes current projection and re-fits display area
+//  * @param {d3.GeoProjection} newProjection 
+//  */
+// function changeProjection(newProjection) { 
+//     projection = newProjection;
 
-    // Fit size based on projection
-    const fittingObject = newProjection == projections.complexLog ? world.countries : world.outline;
-    projection.fitSize([renderParams.width, renderParams.height], fittingObject);
+//     // Fit size based on projection
+//     const fittingObject = newProjection == projections.complexLog ? world.countries : world.outline;
+//     projection.fitSize([renderParams.width, renderParams.height], fittingObject);
 
-    // Rotation dictates projection point of interest
-    projection.rotate(renderParams.currentRotation);
+//     // Rotation dictates projection point of interest
+//     projection.rotate(renderParams.currentRotation);
 
-    // FIXME: Scale affects translate
-    // FIXME: Changing projection also increases the scale slightly, therefore shifts the complex log projection upwards
-    // Base scale is the scale that is derived from fitSize() for that projection
-    baseScale = projection.scale()
-    projection.scale(renderParams.scaleFactor * baseScale);  
+//     // FIXME: Scale affects translate
+//     // FIXME: Changing projection also increases the scale slightly, therefore shifts the complex log projection upwards
+//     // Base scale is the scale that is derived from fitSize() for that projection
+//     baseScale = projection.scale()
+//     projection.scale(renderParams.scaleFactor * baseScale);  
 
-    // Update path generator
-    path = d3.geoPath(projection);
-}
+//     // Update path generator
+//     path = d3.geoPath(projection);
+// }
 
 
-/**
- * Translate projected map by vector (x, y)
- * @param {Number} x 
- * @param {Number} y 
- */
-function translateMap(x, y) {
-    const t = projection.translate();
-    projection.translate([t[0] + x, t[1] + y]);
-    update();
-}
+// /**
+//  * Translate projected map by vector (x, y)
+//  * @param {Number} x 
+//  * @param {Number} y 
+//  */
+// function translateMap(x, y) {
+//     const t = projection.translate();
+//     projection.translate([t[0] + x, t[1] + y]);
+//     update();
+// }
 
 
 /**
@@ -96,71 +93,76 @@ async function prepare() {
     // Download world map and set desired projection
     world = await loadWorld(topoJsonUrl);
 
-    // Set initial projection
-    changeProjection(projections.azimuthal);
+    projection_left = projections.azimuthal;
+    projection_right = projections.complexLog;
 
-    // Main display to render the map onto
-    // SVG
-    svg = d3.select("div#display").append("svg").attr("width", renderParams.width).attr("height", renderParams.height);
+    // Fit size based on projection
+    projection_left.fitSize([renderParams.width, renderParams.height], world.outline);
+    projection_right.fitSize([renderParams.width, renderParams.height], world.countries);
+
+    path_left = d3.geoPath(projection_left);
+    path_right = d3.geoPath(projection_right);
+
+    // Main displays to render the map onto
+    displays.svg = d3.selectAll("div.display").append("svg").attr("width", renderParams.width).attr("height", renderParams.height);
+
     // SVG background
-    svg_background = svg.append("g").append("rect").attr("fill", style.backgroundFill).attr("stroke", style.backgroundStroke).attr("id", "background");
+    displays.svg_background = displays.svg.append("g").append("rect").attr("fill", style.backgroundFill).attr("stroke", style.backgroundStroke).attr("id", "background");
     // SVG countries
-    svg_countries = svg.append("g").selectAll("path").data(world.countries.features).enter().append("path").attr("id", "countries");
-    svg_countries.attr("fill", style.countriesFill).attr("stroke", style.countriesStroke);
+    displays.svg_countries = displays.svg.append("g").selectAll("path").data(world.countries.features).enter().append("path").attr("id", "countries");
+    displays.svg_countries.attr("fill", style.countriesFill).attr("stroke", style.countriesStroke);
     // SVG graticule
-    svg_graticule = svg.append("g").append("path").datum(world.graticule).attr("id", "graticule");
-    svg_graticule.attr("fill", "none").attr("stroke", style.graticuleStroke);
+    displays.svg_graticule = displays.svg.append("g").append("path").datum(world.graticule).attr("id", "graticule");
+    displays.svg_graticule.attr("fill", "none").attr("stroke", style.graticuleStroke);
     // SVG outline
-    svg_outline = svg.append("g").append("path").datum(world.outline).attr("id", "outline");
-    svg_outline.attr("fill", "none").attr("stroke", style.outlineStroke);
+    displays.svg_outline = displays.svg.append("g").append("path").datum(world.outline).attr("id", "outline");
+    displays.svg_outline.attr("fill", "none").attr("stroke", style.outlineStroke);
 
     // Viewport clip visualization
-    svg_viewportClip = svg.append("g").append("path").datum(projections.complexLog.preclip().polygon()).attr("id", "viewportClip");
-    svg_viewportClip.attr("fill", "none").attr("stroke", "#ff0000");
+    displays.svg_viewportClip = displays.svg.append("g").append("path").datum(projections.complexLog.preclip().polygon()).attr("id", "viewportClip");
+    displays.svg_viewportClip.attr("fill", "none").attr("stroke", "#ff0000");
 
-    display = svg;
+    // // Transition to clicked position
+    // displays.svg.on("mousedown", function () {
+    //     const [lambda, phi] = projection.invert(d3.mouse(this));
+    //     renderParams.currentRotation = [-lambda, -phi];
 
-    // Transition to clicked position
-    display.on("mousedown", function () {
-        const [lambda, phi] = projection.invert(d3.mouse(this));
-        renderParams.currentRotation = [-lambda, -phi];
-
-        d3.transition().duration(1000).tween("rotate", function() {
-            const rotationInterpolator = d3.interpolate(projection.rotate(), renderParams.currentRotation);
+    //     d3.transition().duration(1000).tween("rotate", function() {
+    //         const rotationInterpolator = d3.interpolate(projection.rotate(), renderParams.currentRotation);
             
-            return function(t) {
-                projection.rotate(rotationInterpolator(t));
-                update();
-            }
-        }).transition();
-    });
+    //         return function(t) {
+    //             projection.rotate(rotationInterpolator(t));
+    //             update();
+    //         }
+    //     }).transition();
+    // });
 
-    // Keyboard interaction
-    display.attr("focusable", false);
-    display.on("keydown", function () {
-        switch (d3.event.code) {
-            case "KeyW":
-                translateMap(0, -translateStep);
-                break;
-            case "KeyS":
-                translateMap(0, translateStep);
-                break;
-            case "KeyA":
-                translateMap(-translateStep, 0);
-                break;
-            case "KeyD":
-                translateMap(translateStep, 0);
-                break;
-        }
-    });
-    display.on("focus", function () { });
+    // // Keyboard interaction
+    // displays.svg.attr("focusable", false);
+    // displays.svg.on("keydown", function () {
+    //     switch (d3.event.code) {
+    //         case "KeyW":
+    //             translateMap(0, -translateStep);
+    //             break;
+    //         case "KeyS":
+    //             translateMap(0, translateStep);
+    //             break;
+    //         case "KeyA":
+    //             translateMap(-translateStep, 0);
+    //             break;
+    //         case "KeyD":
+    //             translateMap(translateStep, 0);
+    //             break;
+    //     }
+    // });
+    // displays.svg.on("focus", function () { });
 
     // Graticule checkbox
     const graticuleCheckbox = d3.select("input#graticuleCheckbox");
     graticuleCheckbox.property("checked", renderParams.showGraticule);
     graticuleCheckbox.on("change", () => {
         renderParams.showGraticule = graticuleCheckbox.property("checked");
-        svg_graticule.attr("visibility", renderParams.showGraticule ? "visible" : "hidden");
+        displays.svg_graticule.attr("visibility", renderParams.showGraticule ? "visible" : "hidden");
     });
      
     // Outline checkbox
@@ -168,7 +170,7 @@ async function prepare() {
     outlineCheckbox.property("checked", renderParams.showOutline);
     outlineCheckbox.on("change", () => {
         renderParams.showOutline = outlineCheckbox.property("checked");
-        svg_outline.attr("visibility", renderParams.showOutline ? "visible" : "hidden");
+        displays.svg_outline.attr("visibility", renderParams.showOutline ? "visible" : "hidden");
     });
 
     // Color checkbox, triggers re-render
@@ -181,22 +183,10 @@ async function prepare() {
 
     const viewportClipCheckbox = d3.select("input#viewportClipCheckbox");
     viewportClipCheckbox.property("checked", renderParams.showViewportClip);
-    svg_viewportClip.attr("visibility", renderParams.showViewportClip ? "visible" : "hidden");
+    displays.svg_viewportClip.attr("visibility", renderParams.showViewportClip ? "visible" : "hidden");
     viewportClipCheckbox.on("change", () => {
         renderParams.showViewportClip = viewportClipCheckbox.property("checked");
-        svg_viewportClip.attr("visibility", renderParams.showViewportClip ? "visible" : "hidden");
-    });
-
-    // Complex logarithm toggle checkbox, trigger re-render
-    const complexLogCheckbox = d3.select("input#complexLogCheckbox");
-    complexLogCheckbox.on("change", () => {
-        if (!complexLogCheckbox.property("checked")) {
-            changeProjection(projections.azimuthal)
-        } else {
-            changeProjection(projections.complexLog);
-        }
-
-        update();
+        displays.svg_viewportClip.attr("visibility", renderParams.showViewportClip ? "visible" : "hidden");
     });
 
     // Scale range slider and number
@@ -207,14 +197,14 @@ async function prepare() {
     scaleRange.on("input", () => {
         renderParams.scaleFactor = +scaleRange.property("value");
         scaleNumber.property("value", renderParams.scaleFactor);
-        projection.scale(renderParams.scaleFactor * baseScale);
+        //projection.scale(renderParams.scaleFactor * baseScale);
 
         update();
     });
     scaleNumber.on("input", () => {
         renderParams.scaleFactor = +scaleNumber.property("value");
         scaleRange.property("value", renderParams.scaleFactor);
-        projection.scale(renderParams.scaleFactor * baseScale)
+        //projection.scale(renderParams.scaleFactor * baseScale)
 
         update();
     })
@@ -223,27 +213,32 @@ async function prepare() {
 
 /** Render projected map to SVG */
 function renderSvg() {
-    const width = svg.attr("width");
-    const height = svg.attr("height");
+    const width = displays.svg.attr("width");
+    const height = displays.svg.attr("height");
+
+    let pathFn = function(d, i, nodes) {
+        const classList = nodes[0].parentElement.parentElement.parentElement.classList;
+        if (classList.contains("display-left")) {
+            return path_left(d);
+        } else {
+            return path_right(d);
+        }
+    }
 
     // Render SVG
-    svg_background.attr("width", width).attr("height", height);
-    svg_countries.attr("d", path);
-    svg_graticule.attr("d", path);
-    svg_viewportClip.attr("d", path)
+    displays.svg_background.attr("width", width).attr("height", height);
+    displays.svg_countries.attr("d", pathFn);
+    displays.svg_graticule.attr("d", pathFn);
+    displays.svg_viewportClip.attr("d", pathFn)
 
     // Outline cannot be rendered properly with complex log
-    if (projection != projections.complexLog) {
-        svg_outline.attr("d", path);
-    } else {
-        svg_outline.attr("d", "");        
-    }
+    displays.svg_outline.attr("d", pathFn);
 
     // Color coding for countries
     if (renderParams.doColorCountries) {
-        svg_countries.style("fill", function (d) { return colorScale(d.id); });
+        displays.svg_countries.style("fill", function (d) { return colorScale(d.id); });
     } else {
-        svg_countries.style("fill", "none");
+        displays.svg_countries.style("fill", "none");
     }
 }
 

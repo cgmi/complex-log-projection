@@ -10,7 +10,7 @@ const CARTESIAN_OFFSET = 0.00000001;
  * @param {Number} phi Latitude
  */
 export function complexLogRaw(lambda, phi) {
-    // Azimuthal equidistant projection
+    // Azimuthal equal raw projection
     // Interpret projected point on complex plane
     let aziComp = math.complex();
     [aziComp.re, aziComp.im] = d3.geoAzimuthalEqualAreaRaw(lambda, phi);
@@ -48,6 +48,7 @@ complexLogRaw.invert = function(x, y) {
     // Undo rotation
     invLogComp = invLogComp.mul(math.complex(math.cos(math.pi / 2), math.sin(math.pi / 2)));
     
+    // Invert azimuthal equal area
     return d3.geoAzimuthalEqualAreaRaw.invert(invLogComp.re, invLogComp.im);
 }
 
@@ -56,5 +57,21 @@ complexLogRaw.invert = function(x, y) {
  * Complex logarithm projection
  */
 export function complexLog() {
-    return d3.geoProjection(complexLogRaw).angle(90);
+    let projection = d3.geoProjection(complexLogRaw).angle(90);
+
+    // Prevent overlapping polygons, so cut along 180°/-180° degree line (left and right in complex log projected view)
+    projection.preclip(d3.geoClipPolygon({
+        type: "Polygon",
+        coordinates: [
+            [
+                [-180, 0], 
+                [180, 0], 
+                [0.001, -1], 
+                [-0.001, -1], 
+                [-180, 0]
+            ]
+        ] 
+    }));
+
+    return projection;
 }

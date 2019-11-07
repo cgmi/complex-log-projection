@@ -1,10 +1,8 @@
-// TODO: Integrate d3-bundle as module into package manager
 import "regenerator-runtime/runtime"; // Fixes regenerator-runtime issue with parcel...
 import * as d3 from "./vendor/d3-bundle";
-import { loadTopojson } from "./modules/geo-loader";
+import { loadWorld, loadGermany } from "./modules/geo-loader";
 import { complexLog } from "./modules/complexLog";
 
-// TODO: Rename and refactor the following lines
 let world, 
     projection,
     path, 
@@ -13,19 +11,23 @@ let world,
     svg_countries, 
     svg_graticule, 
     svg_outline, 
-    display;
+    display,
+    svg_viewportClip;
 
+// TODO: Example with street data
 const topoJsonUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
+//const topoJsonUrl = "/data/deutschland_bundesländer_3_mittel.topojson.json";
 
 // Various render settings
 let renderParams = {
     showGraticule: true,
     showOutline: true,
+    showViewportClip: false,
     doColorCountries: true,
     scaleFactor: 1,
     width: 900,
     height: 900,
-    currentRotation: [45, 20]
+    currentRotation: [0, 0]
 }
 
 const style = {
@@ -41,14 +43,13 @@ let baseScale;
 
 const projections = {
     complexLog: complexLog(),
-    azimuthal: d3.geoAzimuthalEqualArea()
+    azimuthal: d3.geoOrthographic()
 }
 
 const translateStep = 10;
 
 // Color scale used for country coloring
 const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
-
 
 /**
  * Changes current projection and re-fits display area
@@ -61,35 +62,11 @@ function changeProjection(newProjection) {
     const fittingObject = newProjection == projections.complexLog ? world.countries : world.outline;
     projection.fitSize([renderParams.width, renderParams.height], fittingObject);
 
-    // FIXME: Doesn't work with azimuthal equidistant
-    // Clipping along 180°/-180° line in complex plane
-    if (projection == projections.complexLog) {
-        const n = 10; // Precision, how many vertices to insert along clipping polygon rectangle lines
-        const p = 1;  // Padding along 180°/-180° degree line in complex log projection, choose large enough to prevent overlapping polygons across map
-        let viewportClip = {
-            type: "Polygon",
-            coordinates: [
-            [
-                ...Array.from({length: n}, (_, t) => [p + (renderParams.width - p * 2) * t / n, p]),
-                ...Array.from({length: n}, (_, t) => [renderParams.width - p, (renderParams.height - p * 2) * t / n + p]),
-                ...Array.from({length: n}, (_, t) => [p + (renderParams.width - p * 2) * (n - t) / n, renderParams.height - p]),
-                ...Array.from({length: n}, (_, t) => [p, (renderParams.height - p * 2) * (n - t) / n + p]),
-                [p, p]
-            ].map(point => projection.invert(point)).map(d3.geoRotation(projection.rotate())) // Clip polygon must also be rotated
-            ]
-        };
-
-        projection.preclip(d3.geoClipPolygon({
-            type: "Polygon",
-            coordinates: [viewportClip.coordinates[0]] 
-        }));
-    }
-
     // Rotation dictates projection point of interest
     projection.rotate(renderParams.currentRotation);
 
     // FIXME: Scale affects translate
-    // Set scale after pre-clipping so it doesn't affect clipping polygon
+    // FIXME: Changing projection also increases the scale slightly, therefore shifts the complex log projection upwards
     // Base scale is the scale that is derived from fitSize() for that projection
     baseScale = projection.scale()
     projection.scale(renderParams.scaleFactor * baseScale);  
@@ -117,7 +94,7 @@ function translateMap(x, y) {
  */
 async function prepare() {
     // Download world map and set desired projection
-    world = await loadTopojson(topoJsonUrl);
+    world = await loadWorld(topoJsonUrl);
 
     // Set initial projection
     changeProjection(projections.azimuthal);
@@ -136,6 +113,10 @@ async function prepare() {
     // SVG outline
     svg_outline = svg.append("g").append("path").datum(world.outline).attr("id", "outline");
     svg_outline.attr("fill", "none").attr("stroke", style.outlineStroke);
+
+    // Viewport clip visualization
+    svg_viewportClip = svg.append("g").append("path").datum(projections.complexLog.preclip().polygon()).attr("id", "viewportClip");
+    svg_viewportClip.attr("fill", "none").attr("stroke", "#ff0000");
 
     display = svg;
 
@@ -198,6 +179,14 @@ async function prepare() {
         update();
     });
 
+    const viewportClipCheckbox = d3.select("input#viewportClipCheckbox");
+    viewportClipCheckbox.property("checked", renderParams.showViewportClip);
+    svg_viewportClip.attr("visibility", renderParams.showViewportClip ? "visible" : "hidden");
+    viewportClipCheckbox.on("change", () => {
+        renderParams.showViewportClip = viewportClipCheckbox.property("checked");
+        svg_viewportClip.attr("visibility", renderParams.showViewportClip ? "visible" : "hidden");
+    });
+
     // Complex logarithm toggle checkbox, trigger re-render
     const complexLogCheckbox = d3.select("input#complexLogCheckbox");
     complexLogCheckbox.on("change", () => {
@@ -232,9 +221,6 @@ async function prepare() {
 
 }
 
-
-// TODO: Put rendering into separate module
-
 /** Render projected map to SVG */
 function renderSvg() {
     const width = svg.attr("width");
@@ -244,6 +230,7 @@ function renderSvg() {
     svg_background.attr("width", width).attr("height", height);
     svg_countries.attr("d", path);
     svg_graticule.attr("d", path);
+    svg_viewportClip.attr("d", path)
 
     // Outline cannot be rendered properly with complex log
     if (projection != projections.complexLog) {

@@ -28,6 +28,16 @@
     "esm": "^3.2.25",
     "gh-pages": "^2.1.1",
     "parcel-bundler": "^1.12.4",
+    "parcel-plugin-static-files-copy": "^2.2.1",
     "tape": "^4.11.0"
+  },
+  "staticFiles": {
+    "staticPath": [
+        {
+            "staticPath": "src/data",
+            "staticOutDir": "data"
+        }
+    ],
+    "watcherGlob": "**"
   }
 }

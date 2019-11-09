@@ -15,11 +15,3 @@ export async function loadWorld(url) {
 
     return { land, countries, graticule, outline };
 }
-
-export async function loadGermany(url) {
-    const germany = await d3.json(url);
-    
-    const outline = topojson.feature(germany, germany.objects.outline);
-
-    return { outline };
-}

@@ -1,6 +1,6 @@
 {
   "name": "complex-log-projection",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Complex logarithm geographic projection using d3",
   "main": "./src/index.js",
   "repository": "git@github.com:cgmi/complex-log-projection.git",

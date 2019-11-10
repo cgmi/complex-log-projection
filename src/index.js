@@ -62,6 +62,10 @@ async function prepare() {
     displays.left.baseScale = displays.left.projection.scale();
     displays.right.baseScale = displays.right.projection.scale();
 
+    // Shift complex log slightly up
+    const t = displays.right.projection.translate();
+    displays.right.projection.translate([t[0], t[1] - renderParams.height / 8]);
+
     // Path generators
     displays.left.path = d3.geoPath(displays.left.projection);
     displays.right.path = d3.geoPath(displays.right.projection);
@@ -101,6 +105,7 @@ async function prepare() {
     const svgs_clipPolys = concat(displays.left.svg_clipPoly, displays.right.svg_clipPoly);
     svgs_clipPolys.attr("id", "viewportClip").attr("fill", "none").attr("stroke", "#ff0000");
 
+    // TODO: Show current rotation and allow values via textbox (Issue #4)
     // Transition to clicked position
     function rotationTransition(lambda, phi) {
         renderParams.currentRotation = [-lambda, -phi];
@@ -158,7 +163,7 @@ async function prepare() {
         svgs_clipPolys.attr("visibility", renderParams.showViewportClip ? "visible" : "hidden");
     });
 
-    // FIXME: Scale affects translation of complex log projection
+    // FIXME: Scale affects translation of complex log projection (Issue #1)
     // Scale range slider and number
     const scaleRange = d3.select("input#scaleRange");
     const scaleNumber = d3.select("input#scaleNumber");
@@ -183,6 +188,7 @@ async function prepare() {
 
 }
 
+// TODO: Canvas renderer for better performance (Issue #2)
 /** Render both displays */
 function render() {
     displays.left.svg_countries.attr("d", displays.left.path);

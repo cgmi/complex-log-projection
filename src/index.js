@@ -105,6 +105,23 @@ async function prepare() {
     const svgs_clipPolys = concat(displays.left.svg_clipPoly, displays.right.svg_clipPoly);
     svgs_clipPolys.attr("id", "viewportClip").attr("fill", "none").attr("stroke", "#ff0000");
 
+    // Left-display center cross
+    const crossSize = 20;
+    displays.left.svg_center = displays.left.svg.append("g");
+    displays.left.svg_center.append("line")
+        .attr("x1", renderParams.width / 2 - crossSize / 2)
+        .attr("x2", renderParams.width / 2 + crossSize / 2)
+        .attr("y1", renderParams.height / 2)
+        .attr("y2", renderParams.height / 2);
+    displays.left.svg_center.append("line")
+        .attr("x1", renderParams.width / 2)
+        .attr("x2", renderParams.width / 2)
+        .attr("y1", renderParams.height / 2 - crossSize / 2)
+        .attr("y2", renderParams.height / 2 + crossSize / 2);
+    displays.left.svg_center.selectAll("line")
+        .attr("stroke", "red")
+        .attr("stroke-width", 2);
+
     // Longitude and latitude controls
     const longitudeTextbox = d3.select("input#longitude");
     const latitudeTextbox = d3.select("input#latitude");

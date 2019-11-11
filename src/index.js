@@ -63,6 +63,8 @@ async function prepare() {
     displays.left.baseScale = displays.left.projection.scale();
     displays.right.baseScale = displays.right.projection.scale();
 
+    clipComplexLog();
+
     // Shift complex log slightly up
     const t = displays.right.projection.translate();
     displays.right.projection.translate([t[0], t[1] - renderParams.height / 4]);
@@ -131,7 +133,6 @@ async function prepare() {
     // Transition to clicked position
     function rotationTransition(lambda, phi) {
         renderParams.currentRotation = [-lambda, -phi];
-
         longitudeTextbox.property("value", renderParams.currentRotation[0]);
         latitudeTextbox.property("value", renderParams.currentRotation[1]);
 
@@ -145,6 +146,8 @@ async function prepare() {
                 update();
             }
         }).transition();
+
+        clipComplexLog();
     }
     displays.left.svg.on("mousedown", function () {
         const [lambda, phi] = displays.left.projection.invert(d3.mouse(this));
@@ -272,15 +275,13 @@ async function prepare() {
 // TODO: Canvas renderer for better performance (Issue #2)
 /** Render both displays */
 function render() {
+    // Render paths
     displays.left.svg_countries.attr("d", displays.left.path);
     displays.right.svg_countries.attr("d", displays.right.path);
-
     displays.left.svg_graticule.attr("d", displays.left.path);
     displays.right.svg_graticule.attr("d", displays.right.path);
-
     displays.left.svg_clipPoly.attr("d", displays.left.path);
     displays.right.svg_clipPoly.attr("d", displays.right.path);
-
     // Outline cannot be rendered properly with complex log
     displays.left.svg_outline.attr("d", displays.left.path);
 
@@ -292,6 +293,30 @@ function render() {
         displays.left.svg_countries.style("fill", "none");
         displays.right.svg_countries.style("fill", "none");
     }
+}
+
+/**
+ * Clipping complex logarithm projection
+ */
+function clipComplexLog() {
+    // Clip complex log to avoid overlapping polygons
+    const width = renderParams.width;
+    const height = renderParams.height;
+    const n = 1; // Precision, how many vertices to insert along clipping polygon rectangle lines
+    const p = 0.1;  // Padding along 180°/-180° degree line in complex log projection, choose large enough to prevent overlapping polygons across map
+    let viewportClip = {
+        type: "Polygon",
+        coordinates: [
+            [
+                ...Array.from({length: n}, (_, t) => [p + (width - p * 2) * t / n, p]),
+                ...Array.from({length: n}, (_, t) => [width - p, (height - p * 2) * t / n + p]),
+                ...Array.from({length: n}, (_, t) => [p + (width - p * 2) * (n - t) / n, height - p]),
+                ...Array.from({length: n}, (_, t) => [p, (height - p * 2) * (n - t) / n + p]),
+                [p, p]
+            ].map(point => displays.right.projection.invert(point)).map(d3.geoRotation(displays.right.projection.rotate())) // Clip polygon must also be rotated
+        ]
+    };
+    displays.right.projection.preclip(d3.geoClipPolygon(viewportClip));
 }
 
 

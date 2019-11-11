@@ -143,6 +143,31 @@ async function prepare() {
         rotationTransition(renderParams.currentRotation[0], -latitudeTextbox.property("value"));
     });
 
+    // Hover information about world coordinates
+    let tooltip = d3.select("body").append("div").attr("class", "tooltip").style("opacity", 0);
+    function showTooltip(display) {
+        return function() {
+            const [mouseX, mouseY] = d3.mouse(this);
+            const [lambda, phi] = display.projection.invert([mouseX, mouseY]);
+
+            tooltip.transition()		
+            .duration(200)		
+            .style("opacity", 0.94);		
+            tooltip.html(lambda.toFixed(5) + "<br>" + phi.toFixed(5))	
+            .style("left", (d3.event.pageX) + "px")		
+            .style("top", (d3.event.pageY - 28) + "px");
+        }
+    }
+    function hideTooltip() {		
+        tooltip.transition()		
+            .duration(500)		
+            .style("opacity", 0)
+    }	
+    displays.left.svg.on("mouseover", showTooltip(displays.left));	
+    displays.left.svg.on("mouseout", hideTooltip);
+    displays.right.svg.on("mouseover", showTooltip(displays.right));	
+    displays.right.svg.on("mouseout", hideTooltip);
+
     // Graticule checkbox
     const graticuleCheckbox = d3.select("input#graticuleCheckbox");
     graticuleCheckbox.property("checked", renderParams.showGraticule);

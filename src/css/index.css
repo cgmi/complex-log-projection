@@ -32,6 +32,19 @@
     font-weight: bold;
 }
 
+.tooltip {	
+    position: absolute;			
+    text-align: center;			
+    width: auto;					
+    height: 28px;					
+    padding: 2px;				
+    font: 12px sans-serif;		
+    background: lightsteelblue;	
+    border: 0px;		
+    border-radius: 2px;			
+    pointer-events: none;			
+}
+
 .main {
     margin-top: 75px;
 }

@@ -33,10 +33,10 @@
   },
   "staticFiles": {
     "staticPath": [
-        {
-            "staticPath": "src/data",
-            "staticOutDir": "data"
-        }
+      {
+        "staticPath": "src/data",
+        "staticOutDir": "data"
+      }
     ],
     "watcherGlob": "**"
   }

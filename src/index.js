@@ -105,10 +105,17 @@ async function prepare() {
     const svgs_clipPolys = concat(displays.left.svg_clipPoly, displays.right.svg_clipPoly);
     svgs_clipPolys.attr("id", "viewportClip").attr("fill", "none").attr("stroke", "#ff0000");
 
-    // TODO: Show current rotation and allow values via textbox (Issue #4)
+    // Longitude and latitude controls
+    const longitudeTextbox = d3.select("input#longitude");
+    const latitudeTextbox = d3.select("input#latitude");
+    longitudeTextbox.property("value", renderParams.currentRotation[0]);
+    latitudeTextbox.property("value", renderParams.currentRotation[1]);
     // Transition to clicked position
     function rotationTransition(lambda, phi) {
         renderParams.currentRotation = [-lambda, -phi];
+
+        longitudeTextbox.property("value", renderParams.currentRotation[0]);
+        latitudeTextbox.property("value", renderParams.currentRotation[1]);
 
         d3.transition().duration(1000).tween("rotate", function() {
             const rotationInterpolatorLeft = d3.interpolate(displays.left.projection.rotate(), renderParams.currentRotation);
@@ -128,6 +135,12 @@ async function prepare() {
     displays.right.svg.on("mousedown", function () {
         const [lambda, phi] = displays.right.projection.invert(d3.mouse(this));
         rotationTransition(lambda, phi);
+    });
+    longitudeTextbox.on("change", () => {
+        rotationTransition(-longitudeTextbox.property("value"), renderParams.currentRotation[1]);
+    });
+    latitudeTextbox.on("input", () => {
+        rotationTransition(renderParams.currentRotation[0], -latitudeTextbox.property("value"));
     });
 
     // Graticule checkbox
@@ -184,8 +197,7 @@ async function prepare() {
         displays.right.projection.scale(renderParams.scaleFactor * displays.right.baseScale);
 
         update();
-    })
-
+    });
 }
 
 // TODO: Canvas renderer for better performance (Issue #2)

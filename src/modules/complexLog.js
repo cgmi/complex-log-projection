@@ -3,6 +3,7 @@ import * as math from "mathjs";
 
 const CARTESIAN_OFFSET = 0.00000001;
 
+// Path generator produces some NaN values (Issue #5)
 /**
  * Complex logarithm raw projection
  * @desc Projects points specified by longitude and latitude.

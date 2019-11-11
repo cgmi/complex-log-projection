@@ -18,6 +18,7 @@ let displays = {
 let renderParams = {
     showGraticule: true,
     showOutline: true,
+    showCenter: true,
     showViewportClip: false,
     doColorCountries: true,
     scaleFactor: 1,
@@ -64,7 +65,7 @@ async function prepare() {
 
     // Shift complex log slightly up
     const t = displays.right.projection.translate();
-    displays.right.projection.translate([t[0], t[1] - renderParams.height / 8]);
+    displays.right.projection.translate([t[0], t[1] - renderParams.height / 4]);
 
     // Path generators
     displays.left.path = d3.geoPath(displays.left.projection);
@@ -100,8 +101,8 @@ async function prepare() {
     svgs_outlines.attr("id", "outline").attr("fill", "none").attr("stroke", style.outlineStroke);
 
     // Viewport clip visualization
-    displays.left.svg_clipPoly = displays.left.svg.append("g").append("path").datum(projections.complexLog.preclip().polygon());
-    displays.right.svg_clipPoly = displays.right.svg.append("g").append("path").datum(projections.complexLog.preclip().polygon());
+    displays.left.svg_clipPoly = displays.left.svg.append("g").append("path").datum(projections.complexLog.preclip().polygon ? projections.complexLog.preclip().polygon() : "");
+    displays.right.svg_clipPoly = displays.right.svg.append("g").append("path").datum(projections.complexLog.preclip().polygon ? projections.complexLog.preclip().polygon() : "");
     const svgs_clipPolys = concat(displays.left.svg_clipPoly, displays.right.svg_clipPoly);
     svgs_clipPolys.attr("id", "viewportClip").attr("fill", "none").attr("stroke", "#ff0000");
 
@@ -201,6 +202,15 @@ async function prepare() {
         svgs_outlines.attr("visibility", renderParams.showOutline ? "visible" : "hidden");
     });
 
+    // Center checkbox
+    const centerCheckbox = d3.select("input#centerCheckbox");
+    centerCheckbox.property("checked", renderParams.showCenter);
+    displays.left.svg_center.attr("visibility", renderParams.showCenter ? "visible" : "hidden");
+    centerCheckbox.on("change", () => {
+        renderParams.showCenter = centerCheckbox.property("checked");
+        displays.left.svg_center.attr("visibility", renderParams.showCenter ? "visible" : "hidden");
+    });
+
     // Color checkbox, triggers re-render
     const colorCheckbox = d3.select("input#colorCheckbox");
     colorCheckbox.property("checked", renderParams.doColorCountries);
@@ -230,6 +240,11 @@ async function prepare() {
         displays.left.projection.scale(renderParams.scaleFactor * displays.left.baseScale);
         displays.right.projection.scale(renderParams.scaleFactor * displays.right.baseScale);
 
+        console.log(displays.right.projection.translate());
+
+        // displays.left.projection.translate(displays.left.projection.translate().map(x => x * renderParams.scaleFactor));
+        // displays.right.projection.translate(displays.right.projection.translate().map(x => x * renderParams.scaleFactor));
+
         update();
     });
     scaleNumber.on("input", () => {
@@ -238,6 +253,18 @@ async function prepare() {
         displays.left.projection.scale(renderParams.scaleFactor * displays.left.baseScale);
         displays.right.projection.scale(renderParams.scaleFactor * displays.right.baseScale);
 
+        update();
+    });
+
+    // Complex log translation button
+    d3.select("button#upButton").on("click", function() {
+        const [x, y] = displays.right.projection.translate();
+        displays.right.projection.translate([x, y - 100]);
+        update();
+    });
+    d3.select("button#downButton").on("click", function() {
+        const [x, y] = displays.right.projection.translate();
+        displays.right.projection.translate([x, y + 100]);
         update();
     });
 }

@@ -136,7 +136,8 @@ async function prepare() {
         longitudeTextbox.property("value", renderParams.currentRotation[0]);
         latitudeTextbox.property("value", renderParams.currentRotation[1]);
 
-        d3.transition().duration(1000).tween("rotate", function() {
+        d3.interrupt("rotation");
+        d3.transition("rotation").duration(1000).tween("rotate", function() {
             const rotationInterpolatorLeft = d3.interpolate(displays.left.projection.rotate(), renderParams.currentRotation);
             const rotationInterpolatorRight = d3.interpolate(displays.right.projection.rotate(), renderParams.currentRotation);
             
@@ -172,21 +173,21 @@ async function prepare() {
             const [lambda, phi] = display.projection.invert([mouseX, mouseY]);
 
             tooltip.transition()		
-            .duration(200)		
+            .duration(0)		
             .style("opacity", 0.94);		
             tooltip.html(lambda.toFixed(5) + "<br>" + phi.toFixed(5))	
-            .style("left", (d3.event.pageX) + "px")		
-            .style("top", (d3.event.pageY - 28) + "px");
+            .style("left", (d3.event.pageX + 5) + "px")		
+            .style("top", (d3.event.pageY - 35) + "px");
         }
     }
     function hideTooltip() {		
         tooltip.transition()		
-            .duration(500)		
+            .duration(0)		
             .style("opacity", 0)
     }	
-    displays.left.svg.on("mouseover", showTooltip(displays.left));	
+    displays.left.svg.on("mousemove", showTooltip(displays.left));	
     displays.left.svg.on("mouseout", hideTooltip);
-    displays.right.svg.on("mouseover", showTooltip(displays.right));	
+    displays.right.svg.on("mousemove", showTooltip(displays.right));	
     displays.right.svg.on("mouseout", hideTooltip);
 
     // Graticule checkbox

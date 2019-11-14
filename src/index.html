@@ -17,30 +17,31 @@
             <hr>
         </div>
         <div class="main">
-            <div id="display_left" class="display display-left">
-                <p class="display-title">Azimuthal equal area</p>
-                <div class="display-controls">
-                    <div class="display-control">
-                        <input type="checkbox" id="outlineCheckbox"><label for="outlineCheckbox">Show outline</label>
+            <div class="displays">
+                <div id="display_left" class="display">
+                        <p class="display-title">Azimuthal equal area</p>
+                        <div class="display-controls">
+                            <div class="display-control">
+                                <input type="checkbox" id="outlineCheckbox"><label for="outlineCheckbox">Show outline</label>
+                            </div>
+                            <div class="display-control">
+                                <input type="checkbox" id="centerCheckbox"><label for="centerCheckbox">Show center</label>
+                            </div>
+                            <div class="display-control">
+                                <label for="scaleRange">Scale:</label><input type="range" id="scaleRange" min="0" max="2" step="0.1" style="width: 50%"><input type="number" id="scaleNumber" min="0" max="2" step="0.1">
+                            </div>
+                        </div>
                     </div>
-                    <div class="display-control">
-                        <input type="checkbox" id="centerCheckbox"><label for="centerCheckbox">Show center</label>
+                    <div id="display_right" class="display">
+                        <p class="display-title">Complex logarithm</p>
+                        <div class="display-controls">
+                            <div class="display-control">
+                                <label>Translate:</label>
+                                <button type="button" id="upButton">Up</button>
+                                <button type="button" id="downButton">Down</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="display-control">
-                        <label for="scaleRange">Scale:</label><input type="range" id="scaleRange" min="0" max="2" step="0.1" style="width: 300px;"><input type="number" id="scaleNumber" min="0" max="2" step="0.1">
-                    </div>
-
-                </div>
-            </div>
-            <div id="display_right" class="display display-right">
-                <p class="display-title">Complex logarithm</p>
-                <div class="display-controls">
-                    <div class="display-control">
-                        <label>Translate:</label>
-                        <button type="button" id="upButton">Up</button>
-                        <button type="button" id="downButton">Down</button>
-                    </div>
-                </div>
             </div>
         </div>
         <script src="index.js"></script>

@@ -72,8 +72,31 @@ async function prepare() {
     displays.right.path = d3.geoPath(displays.right.projection);
 
     // Main displays to render the map onto
-    displays.left.svg = d3.select("div#display_left").append("svg").attr("width", renderParams.width).attr("height", renderParams.height);
-    displays.right.svg = d3.select("div#display_right").append("svg").attr("width", renderParams.width).attr("height", renderParams.height);
+
+    displays.left.svg = d3.select("div#display_left")
+        .append("div")
+        // Container class to make it responsive.
+        .classed("svg-container", true) 
+        .append("svg")
+        // Responsive SVG needs these 2 attributes and no width and height attr.
+        .attr("preserveAspectRatio", "xMinYMin meet")
+        .attr("viewBox", `0 0 ${renderParams.width} ${renderParams.height}`)
+        // Class to make it responsive.
+        .classed("svg-content-responsive", true);
+    displays.right.svg = d3.select("div#display_right")
+        .append("div")
+        // Container class to make it responsive.
+        .classed("svg-container", true) 
+        .append("svg")
+        // Responsive SVG needs these 2 attributes and no width and height attr.
+        .attr("preserveAspectRatio", "xMinYMin meet")
+        .attr("viewBox", `0 0 ${renderParams.width} ${renderParams.height}`)
+        // Class to make it responsive.
+        .classed("svg-content-responsive", true);
+
+
+    // displays.left.svg = d3.select("div#display_left").append("svg").attr("width", renderParams.width).attr("height", renderParams.height).attr("viewbox", `0 0 ${renderParams.width} ${renderParams.height}`);
+    // displays.right.svg = d3.select("div#display_right").append("svg").attr("width", renderParams.width).attr("height", renderParams.height).attr("viewbox", `0 0 ${renderParams.width} ${renderParams.height}`);
 
     // SVG background
     displays.left.svg_background = displays.left.svg.append("g").append("rect");

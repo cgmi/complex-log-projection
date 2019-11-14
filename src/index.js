@@ -240,10 +240,7 @@ async function prepare() {
         displays.left.projection.scale(renderParams.scaleFactor * displays.left.baseScale);
         displays.right.projection.scale(renderParams.scaleFactor * displays.right.baseScale);
 
-        console.log(displays.right.projection.translate());
-
-        // displays.left.projection.translate(displays.left.projection.translate().map(x => x * renderParams.scaleFactor));
-        // displays.right.projection.translate(displays.right.projection.translate().map(x => x * renderParams.scaleFactor));
+        //displays.right.projection.translate(displays.right.projection.translate().map(x => x * renderParams.scaleFactor));
 
         update();
     });

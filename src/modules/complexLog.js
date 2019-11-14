@@ -62,18 +62,25 @@ export function complexLog() {
 
     // FIXME: Some rotations lead to overlapping polygons (Issue #3)
     // Prevent overlapping polygons, so cut along 180°/-180° degree line (left and right in complex log projected view)
-    // projection.preclip(d3.geoClipPolygon({
-    //     type: "Polygon",
-    //     coordinates: [
-    //         [
-    //             [180, -0.0001], 
-    //             [180, -0.0001], 
-    //             [0.0001, -1], 
-    //             [-0.0001, -1], 
-    //             [180, -0.0001]
-    //         ]
-    //     ] 
-    // }));
+    projection.preclip(d3.geoClipPolygon({
+        type: "Polygon",
+        coordinates: [
+            [
+                // [180, -0.0001], 
+                // [180, -0.0001], 
+                // [0.0001, -1], 
+                // [-0.0001, -1], 
+                // [180, -0.0001]
+                [-180, -7.016707134432476e-15],
+                [180, -7.01670713437845e-15],
+                [0.00017224640210584277, -0.21858088124959493],
+                [-0.00017110048072471344, -0.21858088124959787],
+                [-180, -7.016707134432476e-15]
+            ]
+        ] 
+    }));
+
+
 
     return projection;
 }

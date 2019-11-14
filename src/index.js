@@ -238,9 +238,6 @@ async function prepare() {
         renderParams.scaleFactor = +scaleRange.property("value");
         scaleNumber.property("value", renderParams.scaleFactor);
         displays.left.projection.scale(renderParams.scaleFactor * displays.left.baseScale);
-        displays.right.projection.scale(renderParams.scaleFactor * displays.right.baseScale);
-
-        //displays.right.projection.translate(displays.right.projection.translate().map(x => x * renderParams.scaleFactor));
 
         update();
     });
@@ -248,7 +245,6 @@ async function prepare() {
         renderParams.scaleFactor = +scaleNumber.property("value");
         scaleRange.property("value", renderParams.scaleFactor);
         displays.left.projection.scale(renderParams.scaleFactor * displays.left.baseScale);
-        displays.right.projection.scale(renderParams.scaleFactor * displays.right.baseScale);
 
         update();
     });

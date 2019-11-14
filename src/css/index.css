@@ -3,7 +3,6 @@
     width: 100%;
     top: 0;
     left: 0;
-    height: 75px;
     background-color: white;
 }
 
@@ -32,6 +31,22 @@
     font-weight: bold;
 }
 
+.display-controls {
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 90%;
+    margin: 0 auto;
+}
+
+.display-control {
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
 .tooltip {	
     position: absolute;			
     text-align: center;			
@@ -46,5 +61,7 @@
 }
 
 .main {
-    margin-top: 75px;
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
 }

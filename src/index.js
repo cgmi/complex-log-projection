@@ -64,6 +64,7 @@ async function prepare() {
     displays.right.baseScale = displays.right.projection.scale();
 
     // Shift complex log slightly up
+    displays.right.projection.center([0,5]);
     const t = displays.right.projection.translate();
     displays.right.projection.translate([t[0], t[1] - renderParams.height / 4]);
 
@@ -72,31 +73,20 @@ async function prepare() {
     displays.right.path = d3.geoPath(displays.right.projection);
 
     // Main displays to render the map onto
-
     displays.left.svg = d3.select("div#display_left")
         .append("div")
-        // Container class to make it responsive.
         .classed("svg-container", true) 
         .append("svg")
-        // Responsive SVG needs these 2 attributes and no width and height attr.
         .attr("preserveAspectRatio", "xMinYMin meet")
         .attr("viewBox", `0 0 ${renderParams.width} ${renderParams.height}`)
-        // Class to make it responsive.
         .classed("svg-content-responsive", true);
     displays.right.svg = d3.select("div#display_right")
         .append("div")
-        // Container class to make it responsive.
         .classed("svg-container", true) 
         .append("svg")
-        // Responsive SVG needs these 2 attributes and no width and height attr.
         .attr("preserveAspectRatio", "xMinYMin meet")
         .attr("viewBox", `0 0 ${renderParams.width} ${renderParams.height}`)
-        // Class to make it responsive.
         .classed("svg-content-responsive", true);
-
-
-    // displays.left.svg = d3.select("div#display_left").append("svg").attr("width", renderParams.width).attr("height", renderParams.height).attr("viewbox", `0 0 ${renderParams.width} ${renderParams.height}`);
-    // displays.right.svg = d3.select("div#display_right").append("svg").attr("width", renderParams.width).attr("height", renderParams.height).attr("viewbox", `0 0 ${renderParams.width} ${renderParams.height}`);
 
     // SVG background
     displays.left.svg_background = displays.left.svg.append("g").append("rect");
@@ -251,7 +241,6 @@ async function prepare() {
         svgs_clipPolys.attr("visibility", renderParams.showViewportClip ? "visible" : "hidden");
     });
 
-    // FIXME: Scale affects translation of complex log projection (Issue #1)
     // Scale range slider and number
     const scaleRange = d3.select("input#scaleRange");
     const scaleNumber = d3.select("input#scaleNumber");
@@ -268,6 +257,8 @@ async function prepare() {
         renderParams.scaleFactor = +scaleNumber.property("value");
         scaleRange.property("value", renderParams.scaleFactor);
         displays.left.projection.scale(renderParams.scaleFactor * displays.left.baseScale);
+        displays.right.projection.scale(renderParams.scaleFactor * displays.right.baseScale);
+
 
         update();
     });

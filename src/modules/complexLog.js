@@ -58,9 +58,8 @@ complexLogRaw.invert = function(x, y) {
  * Complex logarithm projection
  */
 export function complexLog() {
-    let projection = d3.geoProjection(complexLogRaw).center([0,5]).angle(90);
-
-    // FIXME: Some rotations lead to overlapping polygons (Issue #3)
+    let projection = d3.geoProjection(complexLogRaw).angle(90);
+    
     // Prevent overlapping polygons, so cut along 180°/-180° degree line (left and right in complex log projected view)
     projection.preclip(d3.geoClipPolygon({
         type: "Polygon",

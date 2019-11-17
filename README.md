@@ -11,14 +11,20 @@ The idea is based on the following papers:
 
 ## Usage
 
-1. Install [yarn](https://yarnpkg.com/lang/en/)
-2. Install all dependencies of the project
+1. Clone this repository with its submodules
+
+   ```shell
+   git clone --recurse-submodules https://github.com/cgmi/complex-log-projection.git
+   ```
+
+2. Install [yarn](https://yarnpkg.com/lang/en/)
+3. Install all dependencies of the project
 
    ```shell
    yarn install
    ```
 
-3. Start the dev server by
+4. Start the dev server by
 
    ```shell
    yarn dev

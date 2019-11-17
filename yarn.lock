@@ -1738,6 +1738,11 @@ d3-array@1, d3-array@^1.1.1, d3-array@^1.2.0:
   resolved "https://registry.yarnpkg.com/d3-array/-/d3-array-1.2.4.tgz#635ce4d5eea759f6f605863dbcfc30edc737f71f"
   integrity sha512-KHW6M86R+FUPYGb3R5XiYjXPq7VzwxZ22buHhAEVG5ztoEcZZMLov530mmccaqA1GghZArjQV46fuc8kUqhhHw==
 
+"d3-array@1 - 2":
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/d3-array/-/d3-array-2.4.0.tgz#87f8b9ad11088769c82b5ea846bcb1cc9393f242"
+  integrity sha512-KQ41bAF2BMakf/HdKT865ALd4cgND6VcIztVQZUTt0+BH3RWy6ZYnHghVXf6NFjt2ritLr8H1T8LreAAlfiNcw==
+
 d3-axis@1:
   version "1.0.12"
   resolved "https://registry.yarnpkg.com/d3-axis/-/d3-axis-1.0.12.tgz#cdf20ba210cfbb43795af33756886fb3638daac9"
@@ -1828,13 +1833,9 @@ d3-format@1:
   resolved "https://registry.yarnpkg.com/d3-format/-/d3-format-1.4.1.tgz#c45f74b17c5a290c072a4ba7039dd19662cd5ce6"
   integrity sha512-TUswGe6hfguUX1CtKxyG2nymO+1lyThbkS1ifLX0Sr+dOQtAD5gkrffpHnx+yHNKUZ0Bmg5T4AjUQwugPDrm0g==
 
-d3-geo-polygon@^1.8.1:
-  version "1.8.1"
-  resolved "https://registry.yarnpkg.com/d3-geo-polygon/-/d3-geo-polygon-1.8.1.tgz#4b66005805919a870873aa3a1c906e7520c96b2a"
-  integrity sha512-1jxmfC9lUBaxTDCOagb9yO1UV1lP4umMssq6ah4oh9vRjpGVOCjEAj/rL+TLFbT0PS3suRDwcAqy2enwIU6Vog==
-  dependencies:
-    d3-array "1"
-    d3-geo "^1.11.1"
+"d3-geo-polygon@link:./src/vendor/d3-geo-polygon":
+  version "0.0.0"
+  uid ""
 
 d3-geo-projection@^2.7.0:
   version "2.7.0"
@@ -1846,10 +1847,17 @@ d3-geo-projection@^2.7.0:
     d3-geo "^1.10.0"
     resolve "^1.1.10"
 
-d3-geo@1, d3-geo@^1.10.0, d3-geo@^1.11.1:
+d3-geo@1, d3-geo@^1.10.0:
   version "1.11.6"
   resolved "https://registry.yarnpkg.com/d3-geo/-/d3-geo-1.11.6.tgz#134f2ef035ff75a448075fafdea92702a2e0e0cf"
   integrity sha512-z0J8InXR9e9wcgNtmVnPTj0TU8nhYT6lD/ak9may2PdKqXIeHUr8UbFLoCtrPYNsjv6YaLvSDQVl578k6nm7GA==
+  dependencies:
+    d3-array "1"
+
+d3-geo@^1.11.1:
+  version "1.11.9"
+  resolved "https://registry.yarnpkg.com/d3-geo/-/d3-geo-1.11.9.tgz#77eaed14ba62fc2c0aef55cd2943849c866f7ae6"
+  integrity sha512-9edcH6J3s/Aa3KJITWqFJbyB/8q3mMlA9Fi7z6yy+FAYMnRaxmC7jBhUnsINxVWD14GmqX3DK8uk7nV6/Ekt4A==
   dependencies:
     d3-array "1"
 

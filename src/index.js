@@ -1,7 +1,6 @@
 import "regenerator-runtime/runtime"; // Fixes regenerator-runtime issue with parcel...
 import * as d3 from "./vendor/d3-bundle";
 import { loadWorld } from "./modules/geo-loader";
-import { complexLog } from "./modules/complexLog";
 import { concat }  from "./modules/util.js";
 
 // Word geographic data
@@ -39,7 +38,7 @@ const style = {
 
 // Available projections
 const projections = {
-    complexLog: complexLog(),
+    complexLog: d3.geoComplexLog(),
     azimuthal: d3.geoAzimuthalEqualArea()
 }
 
@@ -64,7 +63,6 @@ async function prepare() {
     displays.right.baseScale = displays.right.projection.scale();
 
     // Shift complex log slightly up
-    displays.right.projection.center([0,5]);
     const t = displays.right.projection.translate();
     displays.right.projection.translate([t[0], t[1] - renderParams.height / 4]);
 

@@ -1,0 +1,3 @@
+[submodule "src/vendor/d3-geo-polygon"]
+	path = src/vendor/d3-geo-polygon
+	url = git@github.com:biosmanager/d3-geo-polygon.git

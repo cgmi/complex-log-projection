@@ -20,7 +20,7 @@ let renderParams = {
     showCenter: true,
     showViewportClip: false,
     doColorCountries: true,
-    scaleFactor: 1,
+    defaultScaleFactor: 1.0,
     width: 800,
     height: 800,
     currentRotation: [0, 0]
@@ -56,15 +56,14 @@ async function prepare() {
     displays.left.projection = projections.azimuthal;
     displays.right.projection = projections.complexLog;
 
+    displays.left.projection.rotate(renderParams.currentRotation);
+    displays.right.projection.rotate(renderParams.currentRotation);
+
     // Fit size based on projection
     displays.left.projection.fitSize([renderParams.width, renderParams.height], world.outline);
-    displays.right.projection.fitSize([renderParams.width, renderParams.height], world.countries);
+    displays.right.projection.fitSize([renderParams.width, renderParams.height], projections.complexLog.preclip().polygon());
     displays.left.baseScale = displays.left.projection.scale();
     displays.right.baseScale = displays.right.projection.scale();
-
-    // Shift complex log slightly up
-    const t = displays.right.projection.translate();
-    displays.right.projection.translate([t[0], t[1] - renderParams.height / 4]);
 
     // Path generators
     displays.left.path = d3.geoPath(displays.left.projection);
@@ -153,6 +152,12 @@ async function prepare() {
             return function(t) {
                 displays.left.projection.rotate(rotationInterpolatorLeft(t));
                 displays.right.projection.rotate(rotationInterpolatorRight(t));
+                displays.left.projection.fitSize([renderParams.width, renderParams.height], world.outline);
+                displays.right.projection.fitSize([renderParams.width, renderParams.height], projections.complexLog.preclip().polygon());
+                displays.left.baseScale = displays.left.projection.scale();
+                displays.right.baseScale = displays.right.projection.scale();
+                displays.left.projection.scale(displays.left.scaleFactor * displays.left.baseScale);
+                displays.right.projection.scale(displays.right.scaleFactor * displays.right.baseScale);
                 update();
             }
         }).transition();
@@ -240,41 +245,47 @@ async function prepare() {
     });
 
     // Scale range slider and number
-    const scaleRange = d3.select("input#scaleRange");
-    const scaleNumber = d3.select("input#scaleNumber");
-    scaleRange.property("value", renderParams.scaleFactor);
-    scaleNumber.property("value", renderParams.scaleFactor);
-    scaleRange.on("input", () => {
-        renderParams.scaleFactor = +scaleRange.property("value");
-        scaleNumber.property("value", renderParams.scaleFactor);
-        displays.left.projection.scale(renderParams.scaleFactor * displays.left.baseScale);
+    function updateScale(display, scaleFactor) {
+        display.scaleFactor = scaleFactor;
+        display.scaleRange.property("value", display.scaleFactor);
+        display.scaleNumber.property("value", display.scaleFactor);
+        display.projection.scale(display.scaleFactor * display.baseScale);
 
         update();
+    }
+    displays.left.scaleRange = d3.select("input#scaleRangeLeft");
+    displays.left.scaleNumber = d3.select("input#scaleNumberLeft");
+    updateScale(displays.left, renderParams.defaultScaleFactor);
+    displays.left.scaleRange.on("input", () => {
+        updateScale(displays.left, +displays.left.scaleRange.property("value"));
     });
-    scaleNumber.on("input", () => {
-        renderParams.scaleFactor = +scaleNumber.property("value");
-        scaleRange.property("value", renderParams.scaleFactor);
-        displays.left.projection.scale(renderParams.scaleFactor * displays.left.baseScale);
-        displays.right.projection.scale(renderParams.scaleFactor * displays.right.baseScale);
-
-
-        update();
+    displays.left.scaleNumber.on("input", () => {
+        updateScale(displays.left, +displays.left.scaleNumber.property("value"));
     });
+    displays.right.scaleRange = d3.select("input#scaleRangeRight");
+    displays.right.scaleNumber = d3.select("input#scaleNumberRight");
+    updateScale(displays.right, renderParams.defaultScaleFactor);
+    displays.right.scaleRange.on("input", () => {
+        updateScale(displays.right, +displays.right.scaleRange.property("value"));
+    });
+    displays.right.scaleNumber.on("input", () => {
+        updateScale(displays.right, +displays.right.scaleNumber.property("value"));
+    });
+
 
     // Complex log translation button
     d3.select("button#upButton").on("click", function() {
         const [x, y] = displays.right.projection.translate();
-        displays.right.projection.translate([x, y - 100]);
+        displays.right.projection.translate([x, y - 10]);
         update();
     });
     d3.select("button#downButton").on("click", function() {
         const [x, y] = displays.right.projection.translate();
-        displays.right.projection.translate([x, y + 100]);
+        displays.right.projection.translate([x, y + 10]);
         update();
     });
 }
 
-// TODO: Canvas renderer for better performance (Issue #2)
 /** Render both displays */
 function render() {
     // Render paths

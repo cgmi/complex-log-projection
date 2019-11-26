@@ -1,16 +1,15 @@
 .topbar {
-    position: fixed;
+    margin-top: 5px;
     width: 100%;
-    top: 0;
-    left: 0;
-    background-color: white;
-    z-index: 1;
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
 }
 
-.topbar-inner {
-    margin: 5px;
+.topbar-control {
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
-.topbar-right {
-    float: right;
-}

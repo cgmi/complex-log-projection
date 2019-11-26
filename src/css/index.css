@@ -6,9 +6,12 @@ html {
     font-size: 14px;
 }
 
+body {
+    margin: 0;
+}
+
 .main {
     display: flex;
     justify-content: center;
-    margin-top: 40px;
 }
 

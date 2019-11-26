@@ -10,7 +10,7 @@
     "dev": "parcel src/index.html --out-dir build/dev",
     "build": "parcel build src/index.html --out-dir build/default --no-content-hash",
     "build-local": "parcel build src/index.html --public-url ./ --out-dir build/local --no-content-hash",
-    "build-github": "parcel build src/index.html --public-url /complex-log-projection/ --out-dir build/github --no-content-hash",
+    "build-github": "parcel build src/index.html --public-url /complex-log-projection/ --out-dir build/github --no-content-hash --no-source-maps",
     "deploy": "gh-pages -d build/github",
     "test": "tape -r esm test/*-test.js"
   },

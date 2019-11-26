@@ -11,8 +11,8 @@
             "breakOnLoad": true,
             "sourceMaps": true,
             "sourceMapPathOverrides": {
-                "*": "${webRoot}/*"
-              }
+               "*": "${webRoot}/*"
+             }
         },
         {
             "name": "Launch Firefox DE",

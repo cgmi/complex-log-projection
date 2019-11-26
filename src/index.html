@@ -5,17 +5,23 @@
     </head>
     <body>
         <div class="topbar">
-            <div class="topbar-inner">
+            <div class="topbar-control">
                 <input type="checkbox" id="graticuleCheckbox"><label for="graticuleCheckbox">Show graticule</label>
-                <input type="checkbox" id="colorCheckbox"><label for="colorCheckbox">Color countries</label>
-                <input type="checkbox" id="clipPolyCheckbox"><label for="clipPolyCheckbox">Visualize complex log clip polygon</label>
-                <div class="topbar-right">
-                    <label for="longitude">Longitude:</label><input type="number" id="longitude">
-                    <label for="latitude">Latitude:</label><input type="number" id="latitude">
-                </div>
             </div>
-            <hr>
+            <div class="topbar-control">
+                <input type="checkbox" id="colorCheckbox"><label for="colorCheckbox">Color countries</label>
+            </div>
+            <div class="topbar-control">
+                <input type="checkbox" id="clipPolyCheckbox"><label for="clipPolyCheckbox">Visualize complex log clip polygon</label>
+            </div>
+            <div class="topbar-control">
+                <label for="longitude">Longitude:</label><input type="number" id="longitude">                  
+            </div>
+            <div class="topbar-control">                    
+                <label for="latitude">Latitude:</label><input type="number" id="latitude">
+            </div>
         </div>
+        <hr>
         <div class="main">
             <div class="displays">
                 <div id="display_left" class="display">

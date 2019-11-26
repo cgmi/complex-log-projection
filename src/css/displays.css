@@ -2,10 +2,11 @@
     width: 90%;
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
+    justify-content: space-around;
 }
 
 .display {
+    min-width: 400px;
     float: left;
     width: 48%;
 }
@@ -16,12 +17,11 @@
 }
 
 .display-controls {
-    height: 40px;
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 90%;
-    margin: 0 auto;
+    flex-wrap: wrap;
+    margin-bottom: 5px;
 }
 
 .display-control {

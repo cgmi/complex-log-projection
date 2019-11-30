@@ -15,8 +15,17 @@ body {
     justify-content: center;
 }
 
-.vline {
-    border-left: 6px solid green;
-    height: 100%;
-  }
+.footer {
+    position: fixed;
+    float: right;
+    right: 0;
+    bottom: 0;
+}
+
+.github-mark {
+    margin: 10px;
+    opacity: 0.5;
+    min-width: 32px;
+    width: 1vw;
+}
 

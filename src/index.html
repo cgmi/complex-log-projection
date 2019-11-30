@@ -19,10 +19,10 @@
             </div>
             <div class="topbar-container">
                 <div class="topbar-control">
-                    <label for="longitude">Longitude:&nbsp;</label><input type="number" id="longitude">                  
+                    <label for="longitude">Longitude:&nbsp;</label><input type="number" id="longitude" step="any">                  
                 </div>
                 <div class="topbar-control">                    
-                    <label for="latitude">Latitude:&nbsp;</label><input type="number" id="latitude">
+                    <label for="latitude">Latitude:&nbsp;</label><input type="number" id="latitude" step="any">
                 </div>
                 <div class="topbar-control">                    
                     Click anywhere on the maps to change the projection center.
@@ -42,7 +42,7 @@
                                 <input type="checkbox" id="centerCheckbox"><label for="centerCheckbox">Show center</label>
                             </div>
                             <div class="display-control">
-                                <label for="scaleRangeLeft">Scale:</label><input type="range" id="scaleRangeLeft" min="0" max="2" step="0.1" class="scale-range"><input type="number" id="scaleNumberLeft" min="0" max="2" step="0.1">
+                                <label for="scaleRangeLeft">Scale:</label><input type="range" id="scaleRangeLeft" min="0" max="4" step="0.01" class="scale-range"><input type="number" id="scaleNumberLeft" min="0" max="4" step="0.01">
                             </div>
                         </div>
                     </div>
@@ -55,7 +55,7 @@
                                 <button type="button" id="downButton">Down</button>
                             </div>
                             <div class="display-control">
-                                <label for="scaleRangeRight">Scale:</label><input type="range" id="scaleRangeRight" min="0" max="2" step="0.1" class="scale-range"><input type="number" id="scaleNumberRight" min="0" max="2" step="0.1">
+                                <label for="scaleRangeRight">Scale:</label><input type="range" id="scaleRangeRight" min="0" max="4" step="0.01" class="scale-range"><input type="number" id="scaleNumberRight" min="0" max="4" step="0.01">
                             </div>
                         </div>
                     </div>

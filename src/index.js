@@ -20,7 +20,7 @@ let renderParams = {
     showCenter: true,
     showViewportClip: false,
     doColorCountries: true,
-    defaultScaleFactor: 1.0,
+    defaultScaleFactor: 0.97,
     width: 800,
     height: 800,
     currentRotation: [0, 0]

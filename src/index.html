@@ -5,20 +5,27 @@
     </head>
     <body>
         <div class="topbar">
-            <div class="topbar-control">
-                <input type="checkbox" id="graticuleCheckbox"><label for="graticuleCheckbox">Show graticule</label>
+            <div class="topbar-container">
+                <div class="topbar-control">
+                    <input type="checkbox" id="graticuleCheckbox"><label for="graticuleCheckbox">Show graticule</label>
+                </div>
+                <div class="topbar-control">
+                    <input type="checkbox" id="colorCheckbox"><label for="colorCheckbox">Color countries</label>
+                </div>
+                <div class="topbar-control">
+                    <input type="checkbox" id="clipPolyCheckbox"><label for="clipPolyCheckbox">Visualize complex log clip polygon</label>
+                </div>
             </div>
-            <div class="topbar-control">
-                <input type="checkbox" id="colorCheckbox"><label for="colorCheckbox">Color countries</label>
-            </div>
-            <div class="topbar-control">
-                <input type="checkbox" id="clipPolyCheckbox"><label for="clipPolyCheckbox">Visualize complex log clip polygon</label>
-            </div>
-            <div class="topbar-control">
-                <label for="longitude">Longitude:</label><input type="number" id="longitude">                  
-            </div>
-            <div class="topbar-control">                    
-                <label for="latitude">Latitude:</label><input type="number" id="latitude">
+            <div class="topbar-container">
+                <div class="topbar-control">
+                    <label for="longitude">Longitude:&nbsp;</label><input type="number" id="longitude">                  
+                </div>
+                <div class="topbar-control">                    
+                    <label for="latitude">Latitude:&nbsp;</label><input type="number" id="latitude">
+                </div>
+                <div class="topbar-control">                    
+                    Click anywhere on the maps to change the projection center.
+                </div>                
             </div>
         </div>
         <hr>
@@ -39,10 +46,10 @@
                         </div>
                     </div>
                     <div id="display_right" class="display">
-                        <p class="display-title">Complex logarithm</p>
+                        <p class="display-title">Complex logarithm (applied to azimuthal equal area)</p>
                         <div class="display-controls">
                             <div class="display-control">
-                                <label>Translate:</label>
+                                <label>Translate:&nbsp;</label>
                                 <button type="button" id="upButton">Up</button>
                                 <button type="button" id="downButton">Down</button>
                             </div>

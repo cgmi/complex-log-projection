@@ -15,3 +15,8 @@ body {
     justify-content: center;
 }
 
+.vline {
+    border-left: 6px solid green;
+    height: 100%;
+  }
+
